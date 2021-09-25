@@ -48,6 +48,11 @@ public class LocalClientHandler extends SimpleChannelInboundHandler<FullHttpRequ
   protected void channelRead0(ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest)
       throws Exception {
     FullHttpRequest request = fullHttpRequest.retainedDuplicate();
+    localHttpRequest(channelHandlerContext, fullHttpRequest, request);
+  }
+
+  private void localHttpRequest(ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest,
+      FullHttpRequest request) throws Exception {
     String requestId = System.currentTimeMillis() + "";
     dataStore.add(requestId, request);
     EventLoopGroup group = new NioEventLoopGroup();

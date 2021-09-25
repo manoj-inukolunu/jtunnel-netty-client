@@ -2,6 +2,7 @@ package com.jtunnel.http;
 
 
 import com.jtunnel.data.DataStore;
+import com.jtunnel.netty.LocalClientHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -19,9 +20,11 @@ public class HttpServer implements Runnable {
 
 
   private final DataStore dataStore;
+  private final LocalClientHandler handler;
 
-  public HttpServer(DataStore dataStore) {
+  public HttpServer(DataStore dataStore, LocalClientHandler channel) {
     this.dataStore = dataStore;
+    this.handler = channel;
   }
 
   @Override

@@ -1,7 +1,10 @@
 package com.jtunnel.http;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.util.internal.StringUtil;
+import java.net.http.HttpHeaders;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -15,6 +18,52 @@ public class HttpRequest {
   public List<Entry<String, String>> trailers;
   public String content;
   public String requestId;
+  public String version;
+  public String uri;
+  public String method;
+
+  @JsonIgnore
+  public DefaultHttpHeaders getHeaders() {
+    DefaultHttpHeaders headers = new DefaultHttpHeaders();
+    for (Entry<String, String> entry : httpHeaders) {
+      headers.add(entry.getKey(), entry.getValue());
+    }
+    return headers;
+  }
+
+  @JsonIgnore
+  public DefaultHttpHeaders getTrailer() {
+    DefaultHttpHeaders headers = new DefaultHttpHeaders();
+    for (Entry<String, String> entry : trailers) {
+      headers.add(entry.getKey(), entry.getValue());
+    }
+    return headers;
+  }
+
+
+  public String getUri() {
+    if (initialLine != null) {
+      uri = initialLine.split(" ")[1];
+      return uri;
+    }
+    return uri;
+  }
+
+  public String getMethod() {
+    if (initialLine != null) {
+      method = initialLine.split(" ")[0];
+      return method;
+    }
+    return method;
+  }
+
+  public String getVersion() {
+    if (initialLine != null) {
+      version = initialLine.split(" ")[2];
+      return version;
+    }
+    return version;
+  }
 
   @Override
   public boolean equals(Object o) {
@@ -43,6 +92,7 @@ public class HttpRequest {
     builder.append(initialLine).append("\r\n");
     appendHeaders(builder, httpHeaders);
     appendHeaders(builder, trailers);
+    builder.append(StringUtil.NEWLINE);
     builder.append(content);
     return builder.toString();
   }

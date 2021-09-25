@@ -5,6 +5,7 @@ const mainApp = {
       .then(data => this.history = data)
   },
   prevListElem:null,
+  currentRequestId:null,
   data() {
     return {
       history: [],
@@ -14,7 +15,8 @@ const mainApp = {
       showResponse: false,
       reqClass:null,
       resClass:null,
-      listActive:null
+      listActive:null,
+      repClass:null
     }
   },
   methods: {
@@ -26,6 +28,7 @@ const mainApp = {
        }
        evt.target.className+=" active";
        this.prevListElem = evt.target;
+       this.currentRequestId = item.requestId;
        fetch('http://localhost:5050/rest/request/'+item.requestId)
              .then(response=>response.text())
              .then(data => this.request = data);
@@ -43,7 +46,14 @@ const mainApp = {
       this.showResponse = true;
       this.showRequest = false;
       this.reqClass=null;
-      this.resClass="active"
+      this.resClass="active";
+    },
+    funcReplay(item){
+      this.repClass = "active";
+      this.reqClass = null;
+      this.resClass = null;
+      fetch('http://localhost:5050/rest/replay/'+this.currentRequestId)
+             .then(response=>window.location.reload());
     }
   }
 }

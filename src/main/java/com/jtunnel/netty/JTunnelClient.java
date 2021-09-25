@@ -30,6 +30,7 @@ public class JTunnelClient {
   public void startClientTunnel(DataStore dataStore) throws Exception {
     log.info("Starting JTunnel Client");
     EventLoopGroup group = new NioEventLoopGroup();
+    LocalClientHandler handler = new LocalClientHandler(host, dataStore);
     try {
       Bootstrap b = new Bootstrap();
       b.option(ChannelOption.SO_KEEPALIVE, true).group(group).channel(NioSocketChannel.class)
@@ -37,10 +38,11 @@ public class JTunnelClient {
           .handler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel socketChannel) throws Exception {
-              socketChannel.pipeline().addLast(new LocalClientHandler(host,dataStore));
+              socketChannel.pipeline().addLast(handler);
             }
           });
       ChannelFuture f = b.connect().sync();
+      new Thread(new HttpServer(dataStore, handler)).start();
       f.channel().closeFuture().sync();
     } finally {
       group.shutdownGracefully().sync();
@@ -56,7 +58,6 @@ public class JTunnelClient {
     DataStore dataStore = new RocksDbDataStore();
     String host = args[0] + ".jtunnel.net";
     JTunnelClient tunnelClient = new JTunnelClient(host, 1234);
-    new Thread(new HttpServer(dataStore)).start();
     tunnelClient.startClientTunnel(dataStore);
   }
 }

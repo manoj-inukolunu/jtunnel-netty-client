@@ -67,10 +67,13 @@ public class RocksDbDataStore implements DataStore {
     RocksIterator iterator = rocksDB.newIterator(requestColumnFamilyHandle, new ReadOptions());
     for (iterator.seekToLast(); iterator.isValid(); iterator.prev()) {
       HttpRequest req = mapper.readValue(iterator.value(), HttpRequest.class);
-      HttpResponse res =
-          mapper.readValue(rocksDB.get(responseColumnFamilyHandle, new ReadOptions(), req.requestId.getBytes(
-              StandardCharsets.UTF_8)), HttpResponse.class);
-      map.put(req, res);
+      byte[] resp = rocksDB.get(responseColumnFamilyHandle, new ReadOptions(), req.requestId.getBytes(
+          StandardCharsets.UTF_8));
+      if (resp != null) {
+        HttpResponse res = mapper.readValue(resp, HttpResponse.class);
+        map.put(req, res);
+      }
+
     }
     return map;
   }

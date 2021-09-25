@@ -14,28 +14,8 @@
       display: inline-block
     }
     .right-block {
-     white-space: pre-wrap;}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+     white-space: pre-wrap;
+     }
   </style>
 </head>
 
@@ -50,7 +30,7 @@
       <div v-for="item in history" class="row justify-content-evenly">
         <button type="button" class="list-group-item border-0 list-group-item-action" :class="listActive"
                 @click="load(item,$event)">
-          {{ item.line }}
+          {{ item.requestTime }} {{ item.line }}
         </button>
       </div>
     </div>
@@ -61,6 +41,10 @@
         </li>
         <li class="nav-item">
           <a class="nav-link" :class="resClass" href="#" v-on:click="funcShowResponse()">Response</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" :class="repClass" href="#" v-on:click="funcReplay($event)">Replay</a>
         </li>
       </ul>
       <p></p>
