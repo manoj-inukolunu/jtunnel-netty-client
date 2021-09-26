@@ -6,7 +6,6 @@ import com.jtunnel.data.DataStore;
 import com.jtunnel.netty.LocalHttpResponseHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 
 import io.netty.channel.Channel;
@@ -17,31 +16,24 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
 
-import io.netty.channel.embedded.EmbeddedChannel;
+
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.HttpRequestEncoder;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
@@ -55,9 +47,11 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
 
   private final DataStore dataStore;
   private static final ObjectMapper mapper = new ObjectMapper();
+  private final int localPort;
 
-  public HttpRequestHandler(DataStore dataStore) {
+  public HttpRequestHandler(DataStore dataStore, int localPort) {
     this.dataStore = dataStore;
+    this.localPort = localPort;
   }
 
   private void localHttpRequest(ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest)
@@ -66,7 +60,7 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
     dataStore.add(requestId, fullHttpRequest);
     EventLoopGroup group = new NioEventLoopGroup();
     Bootstrap b = new Bootstrap();
-    b.group(group).channel(NioSocketChannel.class).remoteAddress(new InetSocketAddress("localhost", 8080)).handler(
+    b.group(group).channel(NioSocketChannel.class).remoteAddress(new InetSocketAddress("localhost", localPort)).handler(
         new ChannelInitializer<SocketChannel>() {
           @Override
           protected void initChannel(SocketChannel socketChannel) throws Exception {

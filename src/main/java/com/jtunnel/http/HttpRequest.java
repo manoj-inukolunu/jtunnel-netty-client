@@ -4,7 +4,6 @@ package com.jtunnel.http;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.util.internal.StringUtil;
-import java.net.http.HttpHeaders;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;

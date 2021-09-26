@@ -20,17 +20,19 @@ public class JTunnelClient {
 
   private int port;
   private String host;
+  private int localPort;
 
-  public JTunnelClient(String host, int port) {
+  public JTunnelClient(String host, int port, int localPort) {
     this.host = host;
     this.port = port;
+    this.localPort = localPort;
   }
 
 
   public void startClientTunnel(DataStore dataStore) throws Exception {
     log.info("Starting JTunnel Client");
     EventLoopGroup group = new NioEventLoopGroup();
-    LocalClientHandler handler = new LocalClientHandler(host, dataStore);
+    LocalClientHandler handler = new LocalClientHandler(host, dataStore, localPort);
     try {
       Bootstrap b = new Bootstrap();
       b.option(ChannelOption.SO_KEEPALIVE, true).group(group).channel(NioSocketChannel.class)
@@ -42,7 +44,7 @@ public class JTunnelClient {
             }
           });
       ChannelFuture f = b.connect().sync();
-      new Thread(new HttpServer(dataStore, handler)).start();
+      new Thread(new HttpServer(dataStore, handler, localPort)).start();
       f.channel().closeFuture().sync();
     } finally {
       group.shutdownGracefully().sync();
@@ -51,13 +53,13 @@ public class JTunnelClient {
 
 
   public static void main(String args[]) throws Exception {
-    if (args.length != 1) {
-      log.info("Need a subdomain to connect");
+    if (args.length != 2) {
+      log.info("Need a subdomain and local port to connect  Usage : java -jar jtunnel.jar subdomain port ");
       return;
     }
     DataStore dataStore = new RocksDbDataStore();
     String host = args[0] + ".jtunnel.net";
-    JTunnelClient tunnelClient = new JTunnelClient(host, 1234);
+    JTunnelClient tunnelClient = new JTunnelClient(host, 1234, Integer.parseInt(args[1]));
     tunnelClient.startClientTunnel(dataStore);
   }
 }

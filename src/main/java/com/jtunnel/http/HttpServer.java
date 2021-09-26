@@ -21,10 +21,12 @@ public class HttpServer implements Runnable {
 
   private final DataStore dataStore;
   private final LocalClientHandler handler;
+  private int localPort;
 
-  public HttpServer(DataStore dataStore, LocalClientHandler channel) {
+  public HttpServer(DataStore dataStore, LocalClientHandler channel, int localPort) {
     this.dataStore = dataStore;
     this.handler = channel;
+    this.localPort = localPort;
   }
 
   @Override
@@ -39,7 +41,7 @@ public class HttpServer implements Runnable {
             protected void initChannel(SocketChannel socketChannel) throws Exception {
               socketChannel.pipeline().addLast(new HttpServerCodec());
               socketChannel.pipeline().addLast(new HttpObjectAggregator(Integer.MAX_VALUE));
-              socketChannel.pipeline().addLast(new HttpRequestHandler(dataStore));
+              socketChannel.pipeline().addLast(new HttpRequestHandler(dataStore, localPort));
 
             }
           });
