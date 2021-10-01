@@ -1,7 +1,7 @@
 package com.jtunnel.netty;
 
 import com.jtunnel.data.DataStore;
-import com.jtunnel.data.RocksDbDataStore;
+import com.jtunnel.data.MapDbDataStore;
 import com.jtunnel.http.HttpServer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
@@ -57,7 +57,7 @@ public class JTunnelClient {
       log.info("Need a subdomain and local port to connect  Usage : java -jar jtunnel.jar subdomain port ");
       return;
     }
-    DataStore dataStore = new RocksDbDataStore();
+    DataStore dataStore = new MapDbDataStore();
     String host = args[0] + ".jtunnel.net";
     JTunnelClient tunnelClient = new JTunnelClient(host, 1234, Integer.parseInt(args[1]));
     tunnelClient.startClientTunnel(dataStore);
