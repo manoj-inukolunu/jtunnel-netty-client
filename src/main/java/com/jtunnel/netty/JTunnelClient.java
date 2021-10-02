@@ -2,6 +2,7 @@ package com.jtunnel.netty;
 
 import com.jtunnel.data.DataStore;
 import com.jtunnel.data.MapDbDataStore;
+import com.jtunnel.data.RocksDbDataStore;
 import com.jtunnel.http.HttpServer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;

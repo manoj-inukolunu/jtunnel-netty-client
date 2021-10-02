@@ -1,3 +1,5 @@
+
+
 const mainApp = {
   mounted() {
     fetch('http://localhost:5050/rest/history')
@@ -57,5 +59,8 @@ const mainApp = {
     }
   }
 }
+
+
+
 
 Vue.createApp(mainApp).mount('#app')

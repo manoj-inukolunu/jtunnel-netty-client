@@ -18,11 +18,13 @@ public class HttpResponse {
 
 
   private static void appendHeaders(StringBuilder builder, List<Entry<String, String>> headers) {
-    for (Entry<String, String> header : headers) {
-      builder.append(header.getKey());
-      builder.append(": ");
-      builder.append(header.getValue());
-      builder.append(StringUtil.NEWLINE);
+    if (headers != null) {
+      for (Entry<String, String> header : headers) {
+        builder.append(header.getKey());
+        builder.append(": ");
+        builder.append(header.getValue());
+        builder.append(StringUtil.NEWLINE);
+      }
     }
   }
 

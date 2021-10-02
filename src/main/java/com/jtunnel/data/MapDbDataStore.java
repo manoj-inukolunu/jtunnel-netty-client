@@ -1,5 +1,6 @@
 package com.jtunnel.data;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jtunnel.http.HttpRequest;
 import com.jtunnel.http.HttpResponse;
@@ -7,10 +8,13 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentNavigableMap;
+import lombok.extern.java.Log;
+import lombok.extern.log4j.Log4j2;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.Serializer;
 
+@Log
 public class MapDbDataStore implements DataStore {
 
 
@@ -19,9 +23,13 @@ public class MapDbDataStore implements DataStore {
   private final ConcurrentNavigableMap<String, String> responses;
   private static final ObjectMapper mapper = new ObjectMapper();
 
+  static {
+    mapper.setSerializationInclusion(Include.NON_NULL);
+  }
+
 
   public MapDbDataStore() {
-    mapDb = DBMaker.fileDB("test.db").closeOnJvmShutdown().make();
+    mapDb = DBMaker.fileDB("/Users/manoj/test.db").closeOnJvmShutdown().make();
     requests = mapDb.treeMap("requests", Serializer.STRING, Serializer.STRING).createOrOpen();
     responses = mapDb.treeMap("responses", Serializer.STRING, Serializer.STRING).createOrOpen();
   }
@@ -43,6 +51,7 @@ public class MapDbDataStore implements DataStore {
   public HashMap<HttpRequest, HttpResponse> allRequests() throws Exception {
     HashMap<HttpRequest, HttpResponse> map = new HashMap<>();
     for (String requestId : requests.keySet()) {
+      log.info("Getting for requestId=" + requestId);
       map.put(get(requestId), getResponse(requestId));
     }
     return map;
@@ -55,6 +64,9 @@ public class MapDbDataStore implements DataStore {
 
   @Override
   public HttpResponse getResponse(String requestId) throws Exception {
-    return mapper.readValue(responses.get(requestId), HttpResponse.class);
+    if (responses.containsKey(requestId)) {
+      return mapper.readValue(responses.get(requestId), HttpResponse.class);
+    }
+    return new HttpResponse();
   }
 }

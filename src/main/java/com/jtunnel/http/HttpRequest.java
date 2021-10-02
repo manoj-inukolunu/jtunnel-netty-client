@@ -2,8 +2,10 @@ package com.jtunnel.http;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.util.internal.StringUtil;
+import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -11,6 +13,7 @@ import lombok.Data;
 
 @Data
 public class HttpRequest {
+
 
   public String initialLine;
   public List<Entry<String, String>> httpHeaders;
@@ -20,6 +23,7 @@ public class HttpRequest {
   public String version;
   public String uri;
   public String method;
+  public Date requestTime;
 
   @JsonIgnore
   public DefaultHttpHeaders getHeaders() {

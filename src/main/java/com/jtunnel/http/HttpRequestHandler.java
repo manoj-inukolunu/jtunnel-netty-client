@@ -36,6 +36,7 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -85,42 +86,27 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
   protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest fullHttpRequest)
       throws Exception {
     log.info(fullHttpRequest.uri());
-
     String path = fullHttpRequest.uri();
     if (path.startsWith("/js")) {
       ClassLoader classloader = Thread.currentThread().getContextClassLoader();
       InputStream is = classloader.getResourceAsStream(fullHttpRequest.uri().substring(1));
       ByteBuf content = Unpooled.copiedBuffer(is.readAllBytes());
-      FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, content);
-      response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/javascript");
-      response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());
-      ctx.writeAndFlush(response);
+      returnResponse(ctx, content, HttpResponseStatus.OK, "text/javascript");
     } else if (path.startsWith("/html")) {
       ClassLoader classloader = Thread.currentThread().getContextClassLoader();
       InputStream is = classloader.getResourceAsStream(fullHttpRequest.uri().substring(1));
       ByteBuf content = Unpooled.copiedBuffer(is.readAllBytes());
-      FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, content);
-      response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html");
-      response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());
-      ctx.writeAndFlush(response);
+      returnResponse(ctx, content, HttpResponseStatus.OK, "text/html");
     } else if (path.startsWith("/rest/request")) {
       String requestId = path.substring(path.lastIndexOf("/") + 1);
       HttpRequest request = dataStore.get(requestId);
       ByteBuf content = Unpooled.copiedBuffer(request.toString().getBytes(StandardCharsets.UTF_8));
-      FullHttpResponse response =
-          new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, content);
-      response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json");
-      response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());
-      ctx.writeAndFlush(response);
+      returnResponse(ctx, content, HttpResponseStatus.OK, "application/json");
     } else if (path.startsWith("/rest/response")) {
       String requestId = path.substring(path.lastIndexOf("/") + 1);
       HttpResponse request = dataStore.getResponse(requestId);
       ByteBuf content = Unpooled.copiedBuffer(request.toString().getBytes(StandardCharsets.UTF_8));
-      FullHttpResponse response =
-          new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, content);
-      response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json");
-      response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());
-      ctx.writeAndFlush(response);
+      returnResponse(ctx, content, HttpResponseStatus.OK, "application/json");
     } else if (path.startsWith("/rest/replay")) {
       String requestId = path.substring(path.lastIndexOf("/") + 1);
       HttpRequest request = dataStore.get(requestId);
@@ -132,31 +118,36 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
       localHttpRequest(ctx, fullRequest);
     } else if (path.startsWith("/rest")) {
       HashMap<HttpRequest, HttpResponse> data = dataStore.allRequests();
-      List<ObjectNode> list = new ArrayList<>();
-      for (HttpRequest request : data.keySet()) {
+      List<HttpRequest> list = new ArrayList<>(data.keySet());
+      list.sort((o1, o2) -> -Long.compare(Long.parseLong(o1.requestId), Long.parseLong(o2.requestId)));
+
+      List<ObjectNode> objectNodes = new ArrayList<>();
+      for (HttpRequest request : list) {
         ObjectNode object = mapper.createObjectNode();
         object.put("requestId", request.getRequestId());
         object.put("requestTime", String.valueOf(new Date(Long.parseLong(request.getRequestId()))));
         object.put("line", request.getInitialLine());
-        list.add(object);
+        objectNodes.add(object);
       }
-      ByteBuf content = Unpooled.copiedBuffer(mapper.writeValueAsString(list).getBytes(StandardCharsets.UTF_8));
-      FullHttpResponse response =
-          new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, content);
-      response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json");
-      response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());
-      ctx.writeAndFlush(response);
+
+      ByteBuf content = Unpooled.copiedBuffer(mapper.writeValueAsString(objectNodes).getBytes(StandardCharsets.UTF_8));
+      returnResponse(ctx, content, HttpResponseStatus.OK, "application/json");
 
     } else {
       ByteBuf content = Unpooled.copiedBuffer("Not Found".getBytes(StandardCharsets.UTF_8));
-      FullHttpResponse response =
-          new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND, content);
-      response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html");
-      response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());
-      ctx.writeAndFlush(response);
+      returnResponse(ctx, content, HttpResponseStatus.NOT_FOUND, "text/html");
     }
 
 
+  }
+
+  private void returnResponse(ChannelHandlerContext ctx, ByteBuf content, HttpResponseStatus status,
+      String contentType) {
+    FullHttpResponse response =
+        new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, content);
+    response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
+    response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());
+    ctx.writeAndFlush(response);
   }
 
   @Override
@@ -164,10 +155,7 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
     cause.printStackTrace();
     ByteBuf content =
         Unpooled.copiedBuffer(("Server Error + " + cause.getMessage()).getBytes(StandardCharsets.UTF_8));
-    FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, content);
-    response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html");
-    response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());
-    ctx.writeAndFlush(response);
+    returnResponse(ctx, content, HttpResponseStatus.OK, "text/html");
     ctx.close();
   }
 }

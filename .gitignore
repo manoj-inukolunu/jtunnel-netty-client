@@ -1,2 +1,4 @@
 ./jtunnel
 jtunnel-netty.iml
+jtunnel.jar
+target
