@@ -2,7 +2,6 @@ package com.jtunnel.http;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.util.internal.StringUtil;
 import java.util.Date;

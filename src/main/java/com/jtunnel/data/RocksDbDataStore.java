@@ -1,3 +1,4 @@
+/*
 package com.jtunnel.data;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import lombok.extern.java.Log;
 import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
@@ -21,6 +23,7 @@ import org.rocksdb.RocksDBException;
 import org.rocksdb.RocksIterator;
 import org.rocksdb.WriteOptions;
 
+@Log
 public class RocksDbDataStore implements DataStore {
 
 
@@ -50,7 +53,7 @@ public class RocksDbDataStore implements DataStore {
 
   @Override
   public void add(String requestId, FullHttpRequest request) throws JsonProcessingException, RocksDBException {
-    System.out.println(requestId);
+    log.info(requestId);
     rocksDB.put(requestColumnFamilyHandle, new WriteOptions(), requestId.getBytes(StandardCharsets.UTF_8),
         mapper.writeValueAsBytes(buildHttpRequest(request, requestId)));
   }
@@ -92,3 +95,4 @@ public class RocksDbDataStore implements DataStore {
         HttpResponse.class);
   }
 }
+*/

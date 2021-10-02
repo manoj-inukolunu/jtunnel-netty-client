@@ -2,7 +2,7 @@ package com.jtunnel.netty;
 
 import com.jtunnel.data.DataStore;
 import com.jtunnel.data.MapDbDataStore;
-import com.jtunnel.data.RocksDbDataStore;
+//import com.jtunnel.data.RocksDbDataStore;
 import com.jtunnel.http.HttpServer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
@@ -30,7 +30,7 @@ public class JTunnelClient {
   }
 
 
-  public void startClientTunnel(DataStore dataStore) throws Exception {
+  public void startClientTunnel(MapDbDataStore dataStore) throws Exception {
     log.info("Starting JTunnel Client");
     EventLoopGroup group = new NioEventLoopGroup();
     LocalClientHandler handler = new LocalClientHandler(host, dataStore, localPort);
@@ -52,13 +52,12 @@ public class JTunnelClient {
     }
   }
 
-
   public static void main(String args[]) throws Exception {
     if (args.length != 2) {
       log.info("Need a subdomain and local port to connect  Usage : java -jar jtunnel.jar subdomain port ");
       return;
     }
-    DataStore dataStore = new MapDbDataStore();
+    MapDbDataStore dataStore = new MapDbDataStore();
     String host = args[0] + ".jtunnel.net";
     JTunnelClient tunnelClient = new JTunnelClient(host, 1234, Integer.parseInt(args[1]));
     tunnelClient.startClientTunnel(dataStore);

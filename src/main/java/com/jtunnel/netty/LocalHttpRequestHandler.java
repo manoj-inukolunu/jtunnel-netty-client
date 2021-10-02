@@ -22,7 +22,7 @@ public class LocalHttpRequestHandler extends ChannelOutboundHandlerAdapter {
   public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
     FullHttpRequest request = (FullHttpRequest) msg;
     log.info("About to write to local channel");
-    System.out.println(request.content().toString(CharsetUtil.UTF_8));
+    log.info(request.content().toString(CharsetUtil.UTF_8));
     HttpObjectEncoder<HttpRequest> encoder = new HttpRequestEncoder();
     encoder.write(ctx, msg, promise);
     encoder.flush(ctx);

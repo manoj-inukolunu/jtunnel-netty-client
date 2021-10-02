@@ -1,3 +1,4 @@
+/*
 package com.jtunnel.http;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -55,31 +56,7 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
     this.localPort = localPort;
   }
 
-  private void localHttpRequest(ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest)
-      throws Exception {
-    String requestId = System.currentTimeMillis() + "";
-    dataStore.add(requestId, fullHttpRequest);
-    EventLoopGroup group = new NioEventLoopGroup();
-    Bootstrap b = new Bootstrap();
-    b.group(group).channel(NioSocketChannel.class).remoteAddress(new InetSocketAddress("localhost", localPort)).handler(
-        new ChannelInitializer<SocketChannel>() {
-          @Override
-          protected void initChannel(SocketChannel socketChannel) throws Exception {
-            ChannelPipeline p = socketChannel.pipeline();
-            p.addLast("log", new LoggingHandler(LogLevel.DEBUG));
-            p.addLast("codec", new HttpClientCodec());
-            p.addLast("aggregator", new HttpObjectAggregator(Integer.MAX_VALUE));
-            p.addLast("handler", new LocalHttpResponseHandler(channelHandlerContext, requestId, dataStore));
-          }
-        });
-    Channel channel = b.connect().sync().channel();
-    ChannelFuture f = channel.writeAndFlush(fullHttpRequest);
-    f.addListener(future -> {
-      if (!future.isSuccess()) {
-        future.cause().printStackTrace();
-      }
-    });
-  }
+
 
   //TODO Refactor
   @Override
@@ -117,28 +94,10 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
               request.getTrailer());
       localHttpRequest(ctx, fullRequest);
     } else if (path.startsWith("/rest")) {
-      HashMap<HttpRequest, HttpResponse> data = dataStore.allRequests();
-      List<HttpRequest> list = new ArrayList<>(data.keySet());
-      list.sort((o1, o2) -> -Long.compare(Long.parseLong(o1.requestId), Long.parseLong(o2.requestId)));
-
-      List<ObjectNode> objectNodes = new ArrayList<>();
-      for (HttpRequest request : list) {
-        ObjectNode object = mapper.createObjectNode();
-        object.put("requestId", request.getRequestId());
-        object.put("requestTime", String.valueOf(new Date(Long.parseLong(request.getRequestId()))));
-        object.put("line", request.getInitialLine());
-        objectNodes.add(object);
-      }
-
-      ByteBuf content = Unpooled.copiedBuffer(mapper.writeValueAsString(objectNodes).getBytes(StandardCharsets.UTF_8));
-      returnResponse(ctx, content, HttpResponseStatus.OK, "application/json");
-
     } else {
       ByteBuf content = Unpooled.copiedBuffer("Not Found".getBytes(StandardCharsets.UTF_8));
       returnResponse(ctx, content, HttpResponseStatus.NOT_FOUND, "text/html");
     }
-
-
   }
 
   private void returnResponse(ChannelHandlerContext ctx, ByteBuf content, HttpResponseStatus status,
@@ -159,3 +118,4 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
     ctx.close();
   }
 }
+*/

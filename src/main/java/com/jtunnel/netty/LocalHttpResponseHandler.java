@@ -28,13 +28,18 @@ public class LocalHttpResponseHandler extends SimpleChannelInboundHandler<FullHt
   @Override
   protected void channelRead0(ChannelHandlerContext channelHandlerContext, FullHttpResponse fullHttpResponse)
       throws Exception {
-    ChannelFuture f = parentContext.writeAndFlush(fullHttpResponse.retain());
-    dataStore.saveFullTrace(requestId, fullHttpResponse);
-    f.addListener(future -> {
-      if (!future.isSuccess()) {
-        future.cause().printStackTrace();
-      }
-    });
+    if (parentContext != null) {
+      ChannelFuture f = parentContext.writeAndFlush(fullHttpResponse.retain());
+      dataStore.saveFullTrace(requestId, fullHttpResponse);
+      f.addListener(future -> {
+        if (!future.isSuccess()) {
+          future.cause().printStackTrace();
+        }
+      });
+    } else {
+      dataStore.saveFullTrace(requestId, fullHttpResponse);
+    }
+
   }
 }
 

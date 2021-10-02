@@ -51,7 +51,7 @@ public class MapDbDataStore implements DataStore {
   public HashMap<HttpRequest, HttpResponse> allRequests() throws Exception {
     HashMap<HttpRequest, HttpResponse> map = new HashMap<>();
     for (String requestId : requests.keySet()) {
-      log.info("Getting for requestId=" + requestId);
+//      log.info("Getting for requestId=" + requestId);
       map.put(get(requestId), getResponse(requestId));
     }
     return map;

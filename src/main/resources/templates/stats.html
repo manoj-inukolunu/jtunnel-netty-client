@@ -10,7 +10,8 @@
 
   <style>
     .list-group {
-      display: inline-block
+      display: inline-block;
+      font-size: 15px
     }
 
     .pre-formatted-block {
@@ -56,20 +57,19 @@
         </div>
       </div>
     </div>
-    <nav hidden="true">
+    <br />
+    <nav>
       <ul class="pagination">
-        <li class="page-item"><a class="page-link" href="#">Previous</a></li>
-        <li class="page-item"><a class="page-link" href="#">1</a></li>
-        <li class="page-item"><a class="page-link" href="#">2</a></li>
-        <li class="page-item"><a class="page-link" href="#">3</a></li>
-        <li class="page-item"><a class="page-link" href="#">Next</a></li>
+        <li class="page-item" v-for="item in parseInt(pages)" :key="item">
+          <a class="page-link" href="#" v-on:click="loadPage(item,$event)">{{item}}</a>
+        </li>
       </ul>
     </nav>
   </div>
   </div>
 
 
-  <script type="module" src="/js/stats.js"></script>
+  <script type="module" src="/stats.js"></script>
 
 </body>
 
