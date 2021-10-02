@@ -28,8 +28,8 @@ public class MapDbDataStore implements DataStore {
   }
 
 
-  public MapDbDataStore() {
-    mapDb = DBMaker.fileDB("/Users/manoj/test.db").closeOnJvmShutdown().make();
+  public MapDbDataStore(String arg) {
+    mapDb = DBMaker.fileDB(arg + "/jtunnel.db").closeOnJvmShutdown().make();
     requests = mapDb.treeMap("requests", Serializer.STRING, Serializer.STRING).createOrOpen();
     responses = mapDb.treeMap("responses", Serializer.STRING, Serializer.STRING).createOrOpen();
   }

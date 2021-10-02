@@ -6,7 +6,7 @@
   <title>Stats</title>
   <script src="https://unpkg.com/vue@next"></script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
+        integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
 
   <style>
     .list-group {
@@ -16,60 +16,70 @@
 
     .pre-formatted-block {
       white-space: pre-wrap;
+      max-height: 600px;
     }
+
+
+
+
   </style>
 </head>
 
 <body>
 
-  <p></p>
-  <p></p>
-  <p></p>
-  <div class="container" id="app">
-    <div class="row">
-      <div class="list-group col-md-4">
-        <div v-for="item in history">
-          <button type="button" class="list-group-item border-0 list-group-item-action" :class="listActive"
-            @click="load(item,$event)">
-            {{ item.line }}
-          </button>
-        </div>
-      </div>
-      <div class="col-md-5 right-block">
-        <ul class="nav nav-pills">
-          <li class="nav-item">
-            <a class="nav-link" :class="reqClass" href="#" v-on:click="funcShowRequest()">Request</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" :class="resClass" href="#" v-on:click="funcShowResponse()">Response</a>
-          </li>
+<p></p>
+<p></p>
+<p></p>
 
-          <li class="nav-item">
-            <a class="nav-link" :class="repClass" href="#" v-on:click="funcReplay($event)">Replay</a>
-          </li>
-        </ul>
-        <p></p>
-        <div v-if="showRequest">
-          <pre>{{ request }}</pre>
-        </div>
-        <div v-if="showResponse">
-          <pre>{{ response }}</pre>
-        </div>
+<div class="container" id="app">
+  <nav class="navbar navbar-light" style="background-color: #e3f2fd;">
+    <span class="navbar-brand mb-0 h3">   JTunnel</span>
+  </nav>
+  <p></p>
+  <div class="row">
+    <div class="list-group col-md-4">
+      <div v-for="item in history">
+        <button type="button" class="list-group-item border-0 list-group-item-action" :class="listActive"
+                @click="load(item,$event)">
+          {{ item.line }}
+        </button>
       </div>
     </div>
-    <br />
-    <nav>
-      <ul class="pagination">
-        <li class="page-item" v-for="item in parseInt(pages)" :key="item">
-          <a class="page-link" href="#" v-on:click="loadPage(item,$event)">{{item}}</a>
+    <div class="col-md-5 right-block">
+      <ul class="nav nav-pills">
+        <li class="nav-item">
+          <a class="nav-link" :class="reqClass" href="#" v-on:click="funcShowRequest()">Request</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" :class="resClass" href="#" v-on:click="funcShowResponse()">Response</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" :class="repClass" href="#" v-on:click="funcReplay($event)">Replay</a>
         </li>
       </ul>
-    </nav>
+      <p></p>
+      <div v-if="showRequest">
+        <pre style="max-height:600px">{{ request }}</pre>
+      </div>
+      <div v-if="showResponse">
+        <pre style="max-height:600px">{{ response }}</pre>
+      </div>
+    </div>
   </div>
-  </div>
+  <br/>
+  <nav>
+    <ul class="pagination">
+      <li class="page-item" v-for="item in parseInt(pages)" :key="item">
+        <a class="page-link" href="#" v-on:click="loadPage(item,$event)">{{item}}</a>
+      </li>
+    </ul>
+  </nav>
+</div>
+</div>
 
 
-  <script type="module" src="/stats.js"></script>
+<script type="module" src="/stats.js"></script>
 
 </body>
 

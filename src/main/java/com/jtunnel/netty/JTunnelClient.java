@@ -53,11 +53,12 @@ public class JTunnelClient {
   }
 
   public static void main(String args[]) throws Exception {
-    if (args.length != 2) {
-      log.info("Need a subdomain and local port to connect  Usage : java -jar jtunnel.jar subdomain port ");
+    if (args.length != 3) {
+      log.info(
+          "Need a subdomain and local port to connect  Usage : java -jar jtunnel.jar <subdomain> <port> <dblocation> ");
       return;
     }
-    MapDbDataStore dataStore = new MapDbDataStore();
+    MapDbDataStore dataStore = new MapDbDataStore(args[2]);
     String host = args[0] + ".jtunnel.net";
     JTunnelClient tunnelClient = new JTunnelClient(host, 1234, Integer.parseInt(args[1]));
     tunnelClient.startClientTunnel(dataStore);
