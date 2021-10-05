@@ -21,19 +21,21 @@ public class JTunnelClient {
 
   private int port;
   private String host;
+  private String destHost;
   private int localPort;
 
-  public JTunnelClient(String host, int port, int localPort) {
+  public JTunnelClient(String destHost, String host, int port, int localPort) {
     this.host = host;
     this.port = port;
     this.localPort = localPort;
+    this.destHost = destHost;
   }
 
 
   public void startClientTunnel(MapDbDataStore dataStore) throws Exception {
     log.info("Starting JTunnel Client");
     EventLoopGroup group = new NioEventLoopGroup();
-    LocalClientHandler handler = new LocalClientHandler(host, dataStore, localPort);
+    LocalClientHandler handler = new LocalClientHandler(destHost,host, dataStore, localPort);
     try {
       Bootstrap b = new Bootstrap();
       b.option(ChannelOption.SO_KEEPALIVE, true).group(group).channel(NioSocketChannel.class)
@@ -53,14 +55,14 @@ public class JTunnelClient {
   }
 
   public static void main(String args[]) throws Exception {
-    if (args.length != 3) {
+    if (args.length != 4) {
       log.info(
-          "Need a subdomain and local port to connect  Usage : java -jar jtunnel.jar <subdomain> <port> <dblocation> ");
+          "Need a subdomain and local port to connect  Usage : java -jar jtunnel.jar <subdomain> <desthost> <destport> <dblocation> ");
       return;
     }
     MapDbDataStore dataStore = new MapDbDataStore(args[2]);
     String host = args[0] + ".jtunnel.net";
-    JTunnelClient tunnelClient = new JTunnelClient(host, 1234, Integer.parseInt(args[1]));
+    JTunnelClient tunnelClient = new JTunnelClient(args[3], host, 1234, Integer.parseInt(args[1]));
     tunnelClient.startClientTunnel(dataStore);
   }
 }

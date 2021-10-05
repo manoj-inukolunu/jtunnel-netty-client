@@ -30,11 +30,13 @@ public class LocalClientHandler extends SimpleChannelInboundHandler<FullHttpRequ
   private final DataStore dataStore;
   private final String registerAddress;
   private final int localPort;
+  private final String destHost;
 
-  public LocalClientHandler(String registerAddress, DataStore dataStore, int localPort) {
+  public LocalClientHandler(String destHost, String registerAddress, DataStore dataStore, int localPort) {
     this.dataStore = dataStore;
     this.registerAddress = registerAddress;
     this.localPort = localPort;
+    this.destHost = destHost;
   }
 
   @Override
@@ -59,7 +61,7 @@ public class LocalClientHandler extends SimpleChannelInboundHandler<FullHttpRequ
     dataStore.add(requestId, request);
     EventLoopGroup group = new NioEventLoopGroup();
     Bootstrap b = new Bootstrap();
-    b.group(group).channel(NioSocketChannel.class).remoteAddress(new InetSocketAddress("localhost", localPort)).handler(
+    b.group(group).channel(NioSocketChannel.class).remoteAddress(new InetSocketAddress(destHost, localPort)).handler(
         new ChannelInitializer<SocketChannel>() {
           @Override
           protected void initChannel(SocketChannel socketChannel) throws Exception {
