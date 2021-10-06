@@ -35,7 +35,7 @@ public class JTunnelClient {
   public void startClientTunnel(MapDbDataStore dataStore) throws Exception {
     log.info("Starting JTunnel Client");
     EventLoopGroup group = new NioEventLoopGroup();
-    LocalClientHandler handler = new LocalClientHandler(destHost,host, dataStore, localPort);
+    LocalClientHandler handler = new LocalClientHandler(destHost, host, dataStore, localPort);
     try {
       Bootstrap b = new Bootstrap();
       b.option(ChannelOption.SO_KEEPALIVE, true).group(group).channel(NioSocketChannel.class)
@@ -60,9 +60,9 @@ public class JTunnelClient {
           "Need a subdomain and local port to connect  Usage : java -jar jtunnel.jar <subdomain> <desthost> <destport> <dblocation> ");
       return;
     }
-    MapDbDataStore dataStore = new MapDbDataStore(args[2]);
+    MapDbDataStore dataStore = new MapDbDataStore(args[3]);
     String host = args[0] + ".jtunnel.net";
-    JTunnelClient tunnelClient = new JTunnelClient(args[3], host, 1234, Integer.parseInt(args[1]));
+    JTunnelClient tunnelClient = new JTunnelClient(args[1], host, 1234, Integer.parseInt(args[2]));
     tunnelClient.startClientTunnel(dataStore);
   }
 }

@@ -52,7 +52,11 @@ public class LocalClientHandler extends SimpleChannelInboundHandler<FullHttpRequ
   protected void channelRead0(ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest)
       throws Exception {
     FullHttpRequest request = fullHttpRequest.retainedDuplicate();
-    localHttpRequest(channelHandlerContext, fullHttpRequest, request);
+    try {
+      localHttpRequest(channelHandlerContext, fullHttpRequest, request);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   private void localHttpRequest(ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest,
