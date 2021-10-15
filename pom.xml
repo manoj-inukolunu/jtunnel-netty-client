@@ -53,6 +53,7 @@
   <build>
     <plugins>
 
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
@@ -81,9 +82,16 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <dependencies>
+          <dependency>
+            <groupId>org.springframework.boot.experimental</groupId>
+            <artifactId>spring-boot-thin-layout</artifactId>
+            <version>1.0.27.RELEASE</version>
+          </dependency>
+        </dependencies>
         <configuration>
           <fork>true</fork>
-          <mainClass>com.jtunnel.netty.JTunnelClient</mainClass>
+          <mainClass>com.jtunnel.spring.HttpServer</mainClass>
         </configuration>
         <executions>
           <execution>
