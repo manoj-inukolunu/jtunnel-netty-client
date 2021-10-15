@@ -13,9 +13,9 @@ import lombok.extern.java.Log;
 
 @Log
 @Sharable
-public class LocalHttpRequestHandler extends ChannelOutboundHandlerAdapter {
+public class DestHttpRequestHandler extends ChannelOutboundHandlerAdapter {
 
-  public LocalHttpRequestHandler(ChannelHandlerContext channelHandlerContext) {
+  public DestHttpRequestHandler(ChannelHandlerContext channelHandlerContext) {
   }
 
   @Override

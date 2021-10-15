@@ -11,14 +11,14 @@ import lombok.extern.java.Log;
 
 @Sharable
 @Log
-public class LocalHttpResponseHandler extends SimpleChannelInboundHandler<FullHttpResponse> {
+public class DestHttpResponseHandler extends SimpleChannelInboundHandler<FullHttpResponse> {
 
   private final ChannelHandlerContext parentContext;
   private final String requestId;
   private final DataStore dataStore;
 
 
-  public LocalHttpResponseHandler(ChannelHandlerContext parentContext, String requestId,
+  public DestHttpResponseHandler(ChannelHandlerContext parentContext, String requestId,
       DataStore dataStore) {
     this.parentContext = parentContext;
     this.dataStore = dataStore;

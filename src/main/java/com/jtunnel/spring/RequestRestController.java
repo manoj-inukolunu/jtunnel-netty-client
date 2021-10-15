@@ -4,8 +4,7 @@ package com.jtunnel.spring;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jtunnel.data.DataStore;
-import com.jtunnel.netty.LocalClientHandler;
-import com.jtunnel.netty.LocalHttpResponseHandler;
+import com.jtunnel.netty.DestHttpResponseHandler;
 import com.jtunnel.netty.TunnelConfig;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.Unpooled;
@@ -112,7 +111,7 @@ public class RequestRestController {
             p.addLast("log", new LoggingHandler(LogLevel.DEBUG));
             p.addLast("codec", new HttpClientCodec());
             p.addLast("aggregator", new HttpObjectAggregator(Integer.MAX_VALUE));
-            p.addLast("handler", new LocalHttpResponseHandler(null, requestId, dataStore));
+            p.addLast("handler", new DestHttpResponseHandler(null, requestId, dataStore));
           }
         });
     Channel channel = b.connect().sync().channel();

@@ -24,7 +24,7 @@ import java.net.InetSocketAddress;
 import lombok.extern.java.Log;
 
 @Log
-public class LocalClientHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+public class ClientHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
 
   private final DataStore dataStore;
@@ -32,7 +32,7 @@ public class LocalClientHandler extends SimpleChannelInboundHandler<FullHttpRequ
   private final int localPort;
   private final String destHost;
 
-  public LocalClientHandler(String destHost, String registerAddress, DataStore dataStore, int localPort) {
+  public ClientHandler(String destHost, String registerAddress, DataStore dataStore, int localPort) {
     this.dataStore = dataStore;
     this.registerAddress = registerAddress;
     this.localPort = localPort;
@@ -73,7 +73,7 @@ public class LocalClientHandler extends SimpleChannelInboundHandler<FullHttpRequ
             p.addLast("log", new LoggingHandler(LogLevel.DEBUG));
             p.addLast("codec", new HttpClientCodec());
             p.addLast("aggregator", new HttpObjectAggregator(Integer.MAX_VALUE));
-            p.addLast("handler", new LocalHttpResponseHandler(channelHandlerContext, requestId, dataStore));
+            p.addLast("handler", new DestHttpResponseHandler(channelHandlerContext, requestId, dataStore));
           }
         });
     Channel channel = b.connect().sync().channel();

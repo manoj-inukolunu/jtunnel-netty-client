@@ -35,8 +35,8 @@ public class JTunnelClient {
       try {
         log.info("Starting JTunnel Client");
         EventLoopGroup group = new NioEventLoopGroup();
-        LocalClientHandler handler =
-            new LocalClientHandler(tunnelConfig.getDestHost(), tunnelConfig.getServerHost(), dataStore,
+        ClientHandler handler =
+            new ClientHandler(tunnelConfig.getDestHost(), tunnelConfig.getServerHost(), dataStore,
                 tunnelConfig.getDestPort());
         try {
           Bootstrap b = new Bootstrap();
