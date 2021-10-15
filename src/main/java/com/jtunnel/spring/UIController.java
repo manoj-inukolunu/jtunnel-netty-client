@@ -1,9 +1,8 @@
-package com.jtunnel.http;
+package com.jtunnel.spring;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class UIController {

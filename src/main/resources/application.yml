@@ -1,0 +1,9 @@
+data-store-location: "/Users/manoj"
+server:
+  port: 5050
+
+tunnel:
+  dest-host: "localhost"
+  dest-port: 8080
+  server-host: "manoj.jtunnel.net"
+  server-port: 1234

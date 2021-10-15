@@ -1,4 +1,4 @@
-package com.jtunnel.http;
+package com.jtunnel.spring;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -6,11 +6,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jtunnel.data.DataStore;
 import com.jtunnel.netty.LocalClientHandler;
 import com.jtunnel.netty.LocalHttpResponseHandler;
+import com.jtunnel.netty.TunnelConfig;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
@@ -32,7 +32,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import lombok.extern.java.Log;
-import org.springframework.context.event.EventListener;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -42,22 +42,16 @@ import org.springframework.web.bind.annotation.RestController;
 @Log
 public class RequestRestController {
 
+  @Autowired
   private DataStore dataStore;
+  @Autowired
   private ObjectMapper mapper;
-  private LocalClientHandler ctx;
-  private int localPort;
+  @Autowired
+  TunnelConfig tunnelConfig;
 
-  @EventListener
-  public void construct(Object event) {
-    if (event instanceof DataStore) {
-      this.dataStore = (DataStore) event;
-    } else if (event instanceof ObjectMapper) {
-      this.mapper = (ObjectMapper) event;
-    } else if (event instanceof LocalClientHandler) {
-      this.ctx = (LocalClientHandler) event;
-    } else if (event instanceof Integer) {
-      this.localPort = (int) event;
-    }
+  @GetMapping("/rest/test")
+  public String test() {
+    return "test";
   }
 
   @GetMapping("/rest/history")
@@ -94,6 +88,7 @@ public class RequestRestController {
 
   @GetMapping("/rest/replay/{requestId}")
   public void replayRequest(@PathVariable("requestId") String requestId) throws Exception {
+    log.info("Replaying request= " + requestId);
     HttpRequest request = dataStore.get(requestId);
     FullHttpRequest fullRequest =
         new DefaultFullHttpRequest(HttpVersion.valueOf(request.getVersion()),
@@ -103,13 +98,13 @@ public class RequestRestController {
     localHttpRequest(fullRequest);
   }
 
-  private void localHttpRequest(FullHttpRequest fullHttpRequest)
-      throws Exception {
+  private void localHttpRequest(FullHttpRequest fullHttpRequest) throws Exception {
     String requestId = System.currentTimeMillis() + "";
     dataStore.add(requestId, fullHttpRequest);
     EventLoopGroup group = new NioEventLoopGroup();
     Bootstrap b = new Bootstrap();
-    b.group(group).channel(NioSocketChannel.class).remoteAddress(new InetSocketAddress("localhost", localPort)).handler(
+    b.group(group).channel(NioSocketChannel.class).remoteAddress(new InetSocketAddress(tunnelConfig.getDestHost(),
+        tunnelConfig.getDestPort())).handler(
         new ChannelInitializer<SocketChannel>() {
           @Override
           protected void initChannel(SocketChannel socketChannel) throws Exception {
@@ -117,7 +112,7 @@ public class RequestRestController {
             p.addLast("log", new LoggingHandler(LogLevel.DEBUG));
             p.addLast("codec", new HttpClientCodec());
             p.addLast("aggregator", new HttpObjectAggregator(Integer.MAX_VALUE));
-            p.addLast("handler", new LocalHttpResponseHandler(null,requestId, dataStore));
+            p.addLast("handler", new LocalHttpResponseHandler(null, requestId, dataStore));
           }
         });
     Channel channel = b.connect().sync().channel();

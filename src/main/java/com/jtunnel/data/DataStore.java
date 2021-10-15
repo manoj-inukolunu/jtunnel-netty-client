@@ -1,8 +1,8 @@
 package com.jtunnel.data;
 
 
-import com.jtunnel.http.HttpRequest;
-import com.jtunnel.http.HttpResponse;
+import com.jtunnel.spring.HttpRequest;
+import com.jtunnel.spring.HttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import java.nio.charset.Charset;

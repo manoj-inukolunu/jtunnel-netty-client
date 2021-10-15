@@ -1,9 +1,6 @@
 package com.jtunnel.netty;
 
 import com.jtunnel.data.DataStore;
-import com.jtunnel.data.MapDbDataStore;
-//import com.jtunnel.data.RocksDbDataStore;
-import com.jtunnel.http.HttpServer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -14,55 +11,53 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.net.InetSocketAddress;
+import javax.annotation.PostConstruct;
 import lombok.extern.java.Log;
+import org.springframework.stereotype.Component;
 
 @Log
+@Component
 public class JTunnelClient {
 
-  private int port;
-  private String host;
-  private String destHost;
-  private int localPort;
 
-  public JTunnelClient(String destHost, String host, int port, int localPort) {
-    this.host = host;
-    this.port = port;
-    this.localPort = localPort;
-    this.destHost = destHost;
+  private final DataStore dataStore;
+  private final TunnelConfig tunnelConfig;
+
+  public JTunnelClient(TunnelConfig tunnelConfig, DataStore dataStore) {
+    this.tunnelConfig = tunnelConfig;
+    this.dataStore = dataStore;
   }
 
 
-  public void startClientTunnel(MapDbDataStore dataStore) throws Exception {
-    log.info("Starting JTunnel Client");
-    EventLoopGroup group = new NioEventLoopGroup();
-    LocalClientHandler handler = new LocalClientHandler(destHost, host, dataStore, localPort);
-    try {
-      Bootstrap b = new Bootstrap();
-      b.option(ChannelOption.SO_KEEPALIVE, true).group(group).channel(NioSocketChannel.class)
-          .remoteAddress(new InetSocketAddress(host, port))
-          .handler(new ChannelInitializer<SocketChannel>() {
-            @Override
-            protected void initChannel(SocketChannel socketChannel) throws Exception {
-              socketChannel.pipeline().addLast(handler);
-            }
-          });
-      ChannelFuture f = b.connect().sync();
-      new Thread(new HttpServer(dataStore, handler, localPort)).start();
-      f.channel().closeFuture().sync();
-    } finally {
-      group.shutdownGracefully().sync();
-    }
+  @PostConstruct
+  public void startClientTunnel() throws Exception {
+    new Thread(() -> {
+      try {
+        log.info("Starting JTunnel Client");
+        EventLoopGroup group = new NioEventLoopGroup();
+        LocalClientHandler handler =
+            new LocalClientHandler(tunnelConfig.getDestHost(), tunnelConfig.getServerHost(), dataStore,
+                tunnelConfig.getDestPort());
+        try {
+          Bootstrap b = new Bootstrap();
+          b.option(ChannelOption.SO_KEEPALIVE, true).group(group).channel(NioSocketChannel.class)
+              .remoteAddress(new InetSocketAddress(tunnelConfig.getServerHost(), tunnelConfig.getServerPort()))
+              .handler(new ChannelInitializer<SocketChannel>() {
+                @Override
+                protected void initChannel(SocketChannel socketChannel) throws Exception {
+                  socketChannel.pipeline().addLast(handler);
+                }
+              });
+          ChannelFuture f = b.connect().sync();
+          f.channel().closeFuture().sync();
+        } finally {
+          group.shutdownGracefully().sync();
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }).start();
   }
 
-  public static void main(String args[]) throws Exception {
-    if (args.length != 4) {
-      log.info(
-          "Need a subdomain and local port to connect  Usage : java -jar jtunnel.jar <subdomain> <desthost> <destport> <dblocation> ");
-      return;
-    }
-    MapDbDataStore dataStore = new MapDbDataStore(args[3]);
-    String host = args[0] + ".jtunnel.net";
-    JTunnelClient tunnelClient = new JTunnelClient(args[1], host, 1234, Integer.parseInt(args[2]));
-    tunnelClient.startClientTunnel(dataStore);
-  }
+
 }

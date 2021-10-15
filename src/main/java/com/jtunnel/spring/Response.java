@@ -1,4 +1,4 @@
-package com.jtunnel.http;
+package com.jtunnel.spring;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.node.ObjectNode;

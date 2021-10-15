@@ -2,19 +2,20 @@ package com.jtunnel.data;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jtunnel.http.HttpRequest;
-import com.jtunnel.http.HttpResponse;
+import com.jtunnel.spring.HttpRequest;
+import com.jtunnel.spring.HttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentNavigableMap;
 import lombok.extern.java.Log;
-import lombok.extern.log4j.Log4j2;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.Serializer;
+import org.springframework.stereotype.Component;
 
 @Log
+@Component
 public class MapDbDataStore implements DataStore {
 
 
@@ -28,8 +29,8 @@ public class MapDbDataStore implements DataStore {
   }
 
 
-  public MapDbDataStore(String arg) {
-    mapDb = DBMaker.fileDB(arg + "/jtunnel.db").closeOnJvmShutdown().make();
+  public MapDbDataStore(String directory) {
+    mapDb = DBMaker.fileDB(directory + "/jtunnel.db").closeOnJvmShutdown().make();
     requests = mapDb.treeMap("requests", Serializer.STRING, Serializer.STRING).createOrOpen();
     responses = mapDb.treeMap("responses", Serializer.STRING, Serializer.STRING).createOrOpen();
   }
