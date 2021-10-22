@@ -8,6 +8,10 @@ import lombok.Data;
 @Data
 public class Response {
 
+  @JsonProperty("recordsTotal")
+  private int recordsTotal;
+  @JsonProperty("recordsFiltered")
+  private int recordsFiltered;
   @JsonProperty("total")
   public int total;
   @JsonProperty("countPerPage")

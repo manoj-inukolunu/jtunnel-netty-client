@@ -24,6 +24,14 @@ public class HttpRequest {
   public String method;
   public Date requestTime;
 
+  public String getLine() {
+    int idx = initialLine.indexOf("?");
+    if (idx != -1) {
+      return initialLine.substring(0, initialLine.indexOf("?"));
+    }
+    return initialLine;
+  }
+
   @JsonIgnore
   public DefaultHttpHeaders getHeaders() {
     DefaultHttpHeaders headers = new DefaultHttpHeaders();

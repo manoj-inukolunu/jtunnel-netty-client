@@ -1,0 +1,74 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Stats JQuery</title>
+  <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+  <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js"></script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css">
+  <script src="/statsj.js"></script>
+  <style>
+    table.dataTable tbody td {
+      word-break: break-word;
+      vertical-align: top;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar navbar-light bg-light">
+    <div class="container-fluid">
+      <span class="navbar-brand mb-0 h1">Navbar</span>
+    </div>
+  </nav>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <table id="example" class="table table-hover" style="width:100%">
+          <thead>
+            <tr>
+              <th>Request Id</th>
+              <th>Request Time</th>
+              <th>Line</th>
+            </tr>
+          </thead>
+          <tfoot>
+            <tr>
+              <th>Request Id</th>
+              <th>Request Time</th>
+              <th>Line</th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+    <br />
+    <div class="row" id="content-container">
+
+      <ul class="nav nav-pills">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="#" id="requestPane">Request</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="responsePane" href="#">Response</a>
+        </li>
+        <li class="nav-item" id="replay">
+          <a class="nav-link" href="#">Replay</a>
+        </li>
+        <br />
+        <br />
+      </ul>
+      <br />
+      <pre id="content">
+
+      </pre>
+    </div>
+  </div>
+
+
+</body>
+
+</html>

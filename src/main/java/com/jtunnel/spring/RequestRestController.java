@@ -53,6 +53,32 @@ public class RequestRestController {
     return "test";
   }
 
+  @GetMapping("/rest/data/history")
+  public Response getData(@RequestParam("start") int start, @RequestParam("length") int end) throws Exception {
+    end += start;
+    HashMap<HttpRequest, HttpResponse> data = dataStore.allRequests();
+    List<HttpRequest> list = new ArrayList<>(data.keySet());
+    list.sort((o1, o2) -> -Long.compare(Long.parseLong(o1.requestId), Long.parseLong(o2.requestId)));
+
+    List<ObjectNode> objectNodes = new ArrayList<>();
+    for (HttpRequest request : list) {
+      ObjectNode object = mapper.createObjectNode();
+      object.put("requestId", request.getRequestId());
+      object.put("requestTime", String.valueOf(new Date(Long.parseLong(request.getRequestId()))));
+      object.put("line", request.getLine());
+      objectNodes.add(object);
+    }
+
+    Response response = new Response();
+    response.setRecordsTotal(list.size());
+    response.setRecordsFiltered(list.size());
+    response.setTotal(list.size());
+    response.setCountPerPage(end - start);
+    response.setList(objectNodes.subList(start, end >= objectNodes.size() ? objectNodes.size() - 1 : end));
+    return response;
+  }
+
+
   @GetMapping("/rest/history")
   public Response getHistory(@RequestParam("start") int start, @RequestParam("end") int end) throws Exception {
     HashMap<HttpRequest, HttpResponse> data = dataStore.allRequests();

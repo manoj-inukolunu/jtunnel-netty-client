@@ -9,7 +9,11 @@ public class UIController {
 
   @GetMapping("/stats")
   public String greeting(Model model) {
-    return "stats";
+    return "statsj";
   }
 
+  @GetMapping("/statsj")
+  public String statsj(Model model) {
+    return "statsj";
+  }
 }
