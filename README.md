@@ -1,5 +1,5 @@
 # jtunnel-netty
-Create Tunnels and expose local servers to the internet
+Create Tunnels and expose local servers to the internet , This is still a work in progress
 
 # Java is needed
 
