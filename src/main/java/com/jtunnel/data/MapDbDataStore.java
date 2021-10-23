@@ -1,6 +1,7 @@
 package com.jtunnel.data;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jtunnel.spring.HttpRequest;
 import com.jtunnel.spring.HttpResponse;
@@ -26,6 +27,7 @@ public class MapDbDataStore implements DataStore {
 
   static {
     mapper.setSerializationInclusion(Include.NON_NULL);
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   }
 
 

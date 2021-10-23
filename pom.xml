@@ -79,16 +79,16 @@
         </executions>
       </plugin>
 
-     <!-- <plugin>
+      <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
-        <dependencies>
+        <!--<dependencies>
           <dependency>
             <groupId>org.springframework.boot.experimental</groupId>
             <artifactId>spring-boot-thin-layout</artifactId>
             <version>1.0.27.RELEASE</version>
           </dependency>
-        </dependencies>
+        </dependencies>-->
         <configuration>
           <fork>true</fork>
           <mainClass>com.jtunnel.spring.HttpServer</mainClass>
@@ -100,7 +100,7 @@
             </goals>
           </execution>
         </executions>
-      </plugin>-->
+      </plugin>
     </plugins>
   </build>
 

@@ -39,6 +39,15 @@ $(document).ready(function () {
                 $('#content').text(content);
             });
         });
+
+        $('#replay').click(function () {
+            $('#replay').addClass('active');
+            $('#responsePane').removeClass('active');
+            $('#requestPane').removeClass('active');
+            $.get("/rest/replay/" + requestId).done(function (content) {
+                $('#content').text(content);
+            });
+        });
     });
 
 });
