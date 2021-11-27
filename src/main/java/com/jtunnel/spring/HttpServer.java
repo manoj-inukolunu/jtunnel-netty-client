@@ -29,18 +29,22 @@ public class HttpServer {
 
   public static void main(String args[]) throws Exception {
     log.info("Starting Http Server");
+    if (args.length <= 0) {
+      System.out.println(
+          "Usage : java -jar jTunnel.jar <mode:share|tunnel> <destination-host> <destination-port> <subdomain> <db storage location>");
+      return;
+    }
     String runAs = args[0];
     SpringApplication application = new SpringApplication(HttpServer.class);
     if (runAs.equalsIgnoreCase("share")) {
       if (args.length != 2) {
         System.out.println(
-            "Usage : java -jar jTunnel.jar <share|tunnel> <fileLocation>");
+            "Usage : java -jar jTunnel.jar share <fileLocation>");
         return;
       }
       Properties properties = new Properties();
       properties.put("mode", "share");
-      //https://8b5b81e8-f29a-4777-b38a-7a90d5b0bf3f.jtunnel.net/
-      properties.put("tunnel.server-host", "8b5b81e8-f29a-4777-b38a-7a90d5b0bf3f");
+      properties.put("tunnel.server-host", UUID.randomUUID().toString());
       properties.put("tunnel.server-port", 1234);
       properties.put("file", args[1]);
       properties.put("tunnel.dest-host", "localhost");
@@ -49,19 +53,19 @@ public class HttpServer {
       application.setDefaultProperties(properties);
       application.run(args);
     } else if (runAs.equalsIgnoreCase("tunnel")) {
-      if (args.length != 4) {
+      if (args.length != 6) {
         System.out.println(
-            "Usage : java -jar jTunnel.jar <destination-host> <destination-port> <subdomain> <db storage location>");
+            "Usage : java -jar jTunnel.jar <destination-host> <destination-port> <subdomain> <db storage location> stats-port");
         return;
       }
       Properties properties = new Properties();
       properties.put("mode", "tunnel");
-      properties.put("server.port", "5050");
-      properties.put("tunnel.dest-host", args[0]);
-      properties.put("tunnel.dest-port", args[1]);
-      properties.put("tunnel.server-host", args[2]);
+      properties.put("tunnel.dest-host", args[1]);
+      properties.put("tunnel.dest-port", args[2]);
+      properties.put("tunnel.server-host", args[3]);
       properties.put("tunnel.server-port", 1234);
-      properties.put("data-store-location", args[3]);
+      properties.put("data-store-location", args[4]);
+      properties.put("server.port", args[5]);
       application.setDefaultProperties(properties);
       application.run(args);
     }

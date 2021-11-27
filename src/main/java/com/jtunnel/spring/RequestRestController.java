@@ -123,6 +123,12 @@ public class RequestRestController {
     localHttpRequest(fullRequest);
   }
 
+  @GetMapping("/rest/delete/{requestId}")
+  public void deleteRequest(@PathVariable("requestId") String requestId) throws Exception {
+    log.info("Deleting request= " + requestId);
+    dataStore.remove(requestId);
+  }
+
   private void localHttpRequest(FullHttpRequest fullHttpRequest) throws Exception {
     String requestId = System.currentTimeMillis() + "";
     dataStore.add(requestId, fullHttpRequest);

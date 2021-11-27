@@ -2,3 +2,4 @@
 jtunnel-netty.iml
 jtunnel.jar
 target
+src/main/.DS_Store

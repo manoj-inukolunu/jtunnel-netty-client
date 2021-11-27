@@ -1,7 +1,7 @@
 $(document).ready(function () {
     $('#content-container').hide();
-    console.log("Hello World");
     var table = $('#example').DataTable({
+        "select": true,
         "processing": true,
         "serverSide": true,
         "ajax": "/rest/data/history",
@@ -18,6 +18,16 @@ $(document).ready(function () {
         ]
     });
 
+    $('#example tbody').on('click', 'tr', function () {
+        $(this).toggleClass('selected');
+    });
+
+    function removeAllClasses() {
+        $('#nav-pills-id li a').each(function () {
+            $(this).removeClass('active');
+        });
+    }
+
     table.on('click', 'tbody tr', function () {
         var requestId = table.row(this).data().requestId;
         $.get("/rest/request/" + requestId).done(function (content) {
@@ -26,30 +36,39 @@ $(document).ready(function () {
         $('#content-container').show();
 
         $('#responsePane').click(function () {
+            removeAllClasses();
             $('#responsePane').addClass('active');
-            $('#requestPane').removeClass('active');
             $.get("/rest/response/" + requestId).done(function (content) {
                 $('#content').text(content);
             });
         });
         $('#requestPane').click(function () {
+            removeAllClasses();
             $('#requestPane').addClass('active');
-            $('#responsePane').removeClass('active');
             $.get("/rest/request/" + requestId).done(function (content) {
                 $('#content').text(content);
             });
         });
 
         $('#replay').click(function () {
+            removeAllClasses();
             $('#replay').addClass('active');
-            $('#responsePane').removeClass('active');
-            $('#requestPane').removeClass('active');
             $.get("/rest/replay/" + requestId).done(function (content) {
                 $('#content').text(content);
+            });
+        });
+
+        $('#delete').click(function () {
+            removeAllClasses();
+            $('#delete').addClass('active');
+            $.get("/rest/delete/" + requestId).done(function (content) {
+                location.reload();
             });
         });
     });
 
 });
+
+
 
 

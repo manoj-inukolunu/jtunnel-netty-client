@@ -54,7 +54,6 @@ public class MapDbDataStore implements DataStore {
   public HashMap<HttpRequest, HttpResponse> allRequests() throws Exception {
     HashMap<HttpRequest, HttpResponse> map = new HashMap<>();
     for (String requestId : requests.keySet()) {
-//      log.info("Getting for requestId=" + requestId);
       map.put(get(requestId), getResponse(requestId));
     }
     return map;
@@ -71,5 +70,17 @@ public class MapDbDataStore implements DataStore {
       return mapper.readValue(responses.get(requestId), HttpResponse.class);
     }
     return new HttpResponse();
+  }
+
+  @Override
+  public void remove(String requestId) {
+    requests.remove(requestId);
+    responses.remove(requestId);
+    mapDb.commit();
+  }
+
+  public static void main(String[] args) throws Exception {
+    MapDbDataStore dataStore = new MapDbDataStore("/Users/manoj");
+    System.out.println(dataStore.allRequests().size());
   }
 }

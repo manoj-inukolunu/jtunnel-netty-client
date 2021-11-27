@@ -1,6 +1,7 @@
 package com.jtunnel.netty;
 
 import com.jtunnel.data.DataStore;
+import com.jtunnel.data.MapDbDataStore;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -57,6 +58,14 @@ public class JTunnelClient {
         e.printStackTrace();
       }
     }).start();
+  }
+
+  public static void main(String[] args) throws Exception {
+    TunnelConfig tunnelConfig = new TunnelConfig();
+    tunnelConfig.setServerPort(1234);
+    tunnelConfig.setServerHost("localhost");
+    JTunnelClient client = new JTunnelClient(tunnelConfig, new MapDbDataStore("/Users/manoj/Desktop"));
+    client.startClientTunnel();
   }
 
 

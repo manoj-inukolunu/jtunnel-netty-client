@@ -24,6 +24,14 @@ def process_slack_event():
     return ""
 
 
+@app.route('/message-broker/slack/events', methods=('GET', 'POST'))
+def process_slack_event1():
+  if request.method == 'POST':
+    print(request.get_json())
+    if 'challenge' in request.get_json():
+      return request.get_json()['challenge']
+    return ""
+
+
 if __name__ == '__main__':
   app.run(debug=True, host='0.0.0.0', port=8080)
-
