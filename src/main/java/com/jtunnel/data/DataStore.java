@@ -40,4 +40,8 @@ public interface DataStore {
   HttpRequest get(String requestId) throws Exception;
 
   HttpResponse getResponse(String requestId) throws Exception;
+
+  default void remove(String requestId) {
+
+  }
 }

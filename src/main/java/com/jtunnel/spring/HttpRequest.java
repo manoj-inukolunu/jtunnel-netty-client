@@ -75,18 +75,6 @@ public class HttpRequest {
     return version;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    HttpRequest that = (HttpRequest) o;
-    return Objects.equals(requestId, that.requestId);
-  }
-
   private static void appendHeaders(StringBuilder builder, List<Entry<String, String>> headers) {
     for (Entry<String, String> header : headers) {
       builder.append(header.getKey());
@@ -108,7 +96,22 @@ public class HttpRequest {
   }
 
   @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    HttpRequest that = (HttpRequest) o;
+    return Objects.equals(httpHeaders,
+        that.httpHeaders) && Objects.equals(trailers, that.trailers) && Objects.equals(content,
+        that.content) && Objects.equals(version,
+        that.version) && Objects.equals(uri, that.uri) && Objects.equals(method, that.method);
+  }
+
+  @Override
   public int hashCode() {
-    return Objects.hash(requestId);
+    return Objects.hash(httpHeaders, trailers, content, version, uri, method);
   }
 }
