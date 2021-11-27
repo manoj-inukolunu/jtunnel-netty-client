@@ -2,16 +2,18 @@ package com.jtunnel.spring;
 
 
 import com.jtunnel.data.DataStore;
-import com.jtunnel.data.MapDbDataStore;
+import com.jtunnel.data.SearchableDataStore;
+import com.jtunnel.data.SearchableMapDbDataStore;
 import com.jtunnel.netty.TunnelConfig;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 import lombok.extern.java.Log;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -82,12 +84,22 @@ public class HttpServer {
   }
 
   @Bean
-  public DataStore dataStore(Environment environment) {
+  public SearchableDataStore dataStore(Environment environment) {
     String mode = environment.getProperty("mode");
     if (Objects.requireNonNull(mode).equalsIgnoreCase("tunnel")) {
-      return new MapDbDataStore(environment.getProperty("data-store-location"));
+      return new SearchableMapDbDataStore(environment.getProperty("data-store-location"));
     } else {
-      return new DataStore() {
+      return new SearchableDataStore() {
+        @Override
+        public Set<String> search(List<String> text) {
+          return null;
+        }
+
+        @Override
+        public void index(HttpRequest request, HttpResponse response) {
+
+        }
+
         @Override
         public void add(String requestId, FullHttpRequest request) throws Exception {
 

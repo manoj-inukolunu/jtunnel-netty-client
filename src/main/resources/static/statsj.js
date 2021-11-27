@@ -5,6 +5,15 @@ $(document).ready(function () {
         "processing": true,
         "serverSide": true,
         "ajax": "/rest/data/history",
+        "initComplete": function() {
+                             $('.dataTables_filter input').unbind();
+                             $('.dataTables_filter input').bind('keyup', function(e){
+                                 var code = e.keyCode || e.which;
+                                 if (code == 13) {
+                                     table.search(this.value).draw();
+                                 }
+                             });
+                         },
         "columns": [
             { "data": "requestId", "width": "85px" },
             { "data": "requestTime", "width": "150px" },

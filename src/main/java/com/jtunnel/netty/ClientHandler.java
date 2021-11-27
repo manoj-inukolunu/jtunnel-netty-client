@@ -1,6 +1,7 @@
 package com.jtunnel.netty;
 
 import com.jtunnel.data.DataStore;
+import com.jtunnel.data.index.SearchIndex;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;

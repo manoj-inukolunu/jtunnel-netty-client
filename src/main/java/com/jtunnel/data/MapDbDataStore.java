@@ -24,6 +24,7 @@ public class MapDbDataStore implements DataStore {
   private final ConcurrentNavigableMap<String, String> requests;
   private final ConcurrentNavigableMap<String, String> responses;
   private static final ObjectMapper mapper = new ObjectMapper();
+  private final String directory;
 
   static {
     mapper.setSerializationInclusion(Include.NON_NULL);
@@ -32,6 +33,7 @@ public class MapDbDataStore implements DataStore {
 
 
   public MapDbDataStore(String directory) {
+    this.directory = directory;
     mapDb = DBMaker.fileDB(directory + "/jtunnel.db").closeOnJvmShutdown().make();
     requests = mapDb.treeMap("requests", Serializer.STRING, Serializer.STRING).createOrOpen();
     responses = mapDb.treeMap("responses", Serializer.STRING, Serializer.STRING).createOrOpen();
@@ -77,10 +79,5 @@ public class MapDbDataStore implements DataStore {
     requests.remove(requestId);
     responses.remove(requestId);
     mapDb.commit();
-  }
-
-  public static void main(String[] args) throws Exception {
-    MapDbDataStore dataStore = new MapDbDataStore("/Users/manoj");
-    System.out.println(dataStore.allRequests().size());
   }
 }

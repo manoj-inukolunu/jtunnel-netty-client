@@ -3,7 +3,9 @@ package com.jtunnel.spring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.jtunnel.data.DataStore;
+import com.google.common.base.Stopwatch;
+import com.google.common.base.Strings;
+import com.jtunnel.data.SearchableDataStore;
 import com.jtunnel.netty.DestHttpResponseHandler;
 import com.jtunnel.netty.TunnelConfig;
 import io.netty.bootstrap.Bootstrap;
@@ -27,10 +29,14 @@ import io.netty.handler.logging.LoggingHandler;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.java.Log;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,7 +48,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class RequestRestController {
 
   @Autowired
-  private DataStore dataStore;
+  private SearchableDataStore dataStore;
   @Autowired
   private ObjectMapper mapper;
   @Autowired
@@ -53,11 +59,35 @@ public class RequestRestController {
     return "test";
   }
 
+  private List<HttpRequest> search(String term) throws Exception {
+    Stopwatch stopwatch = Stopwatch.createStarted();
+    Set<String> requestIds = dataStore.search(Arrays.asList(term));
+    List<HttpRequest> list = new ArrayList<>();
+    for (String requestId : requestIds) {
+      list.add(dataStore.get(requestId));
+    }
+    log.info("Time Taken to search=" + stopwatch.elapsed(TimeUnit.SECONDS));
+    stopwatch.stop();
+    return list;
+  }
+
+
   @GetMapping("/rest/data/history")
-  public Response getData(@RequestParam("start") int start, @RequestParam("length") int end) throws Exception {
-    end += start;
-    HashMap<HttpRequest, HttpResponse> data = dataStore.allRequests();
-    List<HttpRequest> list = new ArrayList<>(data.keySet());
+  public Response search(@RequestParam("start") int start, @RequestParam("length") int end,
+      @RequestParam("search[value]") String term) throws Exception {
+    if (!Strings.isNullOrEmpty(term)) {
+      end += start;
+      return getResponseFromList(start, end, search(term));
+    } else {
+      end += start;
+      HashMap<HttpRequest, HttpResponse> data = dataStore.allRequests();
+      List<HttpRequest> list = new ArrayList<>(data.keySet());
+      return getResponseFromList(start, end, list);
+    }
+  }
+
+  @NotNull
+  private Response getResponseFromList(int start, int end, List<HttpRequest> list) {
     list.sort((o1, o2) -> -Long.compare(Long.parseLong(o1.requestId), Long.parseLong(o2.requestId)));
 
     List<ObjectNode> objectNodes = new ArrayList<>();
@@ -84,21 +114,7 @@ public class RequestRestController {
     HashMap<HttpRequest, HttpResponse> data = dataStore.allRequests();
     List<HttpRequest> list = new ArrayList<>(data.keySet());
     list.sort((o1, o2) -> -Long.compare(Long.parseLong(o1.requestId), Long.parseLong(o2.requestId)));
-
-    List<ObjectNode> objectNodes = new ArrayList<>();
-    for (HttpRequest request : list) {
-      ObjectNode object = mapper.createObjectNode();
-      object.put("requestId", request.getRequestId());
-      object.put("requestTime", String.valueOf(new Date(Long.parseLong(request.getRequestId()))));
-      object.put("line", request.getInitialLine());
-      objectNodes.add(object);
-    }
-
-    Response response = new Response();
-    response.setTotal(list.size());
-    response.setCountPerPage(end - start);
-    response.setList(objectNodes.subList(start, end >= objectNodes.size() ? objectNodes.size() - 1 : end));
-    return response;
+    return getResponseFromList(start, end, list);
   }
 
   @GetMapping("/rest/request/{requestId}")
