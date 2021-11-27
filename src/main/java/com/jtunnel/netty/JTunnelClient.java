@@ -24,6 +24,7 @@ public class JTunnelClient {
   private final DataStore dataStore;
   private final TunnelConfig tunnelConfig;
 
+
   public JTunnelClient(TunnelConfig tunnelConfig, DataStore dataStore) {
     this.tunnelConfig = tunnelConfig;
     this.dataStore = dataStore;
@@ -58,14 +59,6 @@ public class JTunnelClient {
         e.printStackTrace();
       }
     }).start();
-  }
-
-  public static void main(String[] args) throws Exception {
-    TunnelConfig tunnelConfig = new TunnelConfig();
-    tunnelConfig.setServerPort(1234);
-    tunnelConfig.setServerHost("localhost");
-    JTunnelClient client = new JTunnelClient(tunnelConfig, new MapDbDataStore("/Users/manoj/Desktop"));
-    client.startClientTunnel();
   }
 
 
