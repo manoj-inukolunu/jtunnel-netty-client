@@ -1,12 +1,9 @@
 package com.jtunnel.data;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Joiner;
 import com.jtunnel.spring.HttpRequest;
 import com.jtunnel.spring.HttpResponse;
 import io.netty.handler.codec.http.FullHttpResponse;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -40,12 +37,12 @@ public class SearchableMapDbDataStore extends MapDbDataStore implements Searchab
   public void index(HttpRequest request, HttpResponse response) {
     String[] parts = request.getInitialLine().split("/");
     for (int i = 0; i < parts.length; i++) {
-      StringBuffer buffer = new StringBuffer("/");
+      StringBuilder builder = new StringBuilder("/");
       for (int j = i; j < parts.length; j++) {
-        buffer.append(parts[j]).append("/");
-        Set<String> documentIds = invertedIndex.getOrDefault(buffer.toString(), new HashSet<>());
+        builder.append(parts[j]).append("/");
+        Set<String> documentIds = invertedIndex.getOrDefault(builder.toString(), new HashSet<>());
         documentIds.add(request.getRequestId());
-        invertedIndex.put(buffer.toString(), documentIds);
+        invertedIndex.put(builder.toString(), documentIds);
       }
     }
   }
