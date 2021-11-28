@@ -36,45 +36,48 @@ $(document).ready(function () {
             $(this).removeClass('active');
         });
     }
-
-    table.on('click', 'tbody tr', function () {
-        var requestId = table.row(this).data().requestId;
+    var requestId;
+    table.off('click', 'tbody tr').on('click', 'tbody tr', function () {
+    $('#content-container').unbind();
+        requestId = table.row(this).data().requestId;
         $.get("/rest/request/" + requestId).done(function (content) {
             $('#content').text(content);
         });
         $('#content-container').show();
 
-        $('#responsePane').click(function () {
-            removeAllClasses();
-            $('#responsePane').addClass('active');
-            $.get("/rest/response/" + requestId).done(function (content) {
-                $('#content').text(content);
-            });
-        });
-        $('#requestPane').click(function () {
-            removeAllClasses();
-            $('#requestPane').addClass('active');
-            $.get("/rest/request/" + requestId).done(function (content) {
-                $('#content').text(content);
-            });
-        });
-
-        $('#replay').click(function () {
-            removeAllClasses();
-            $('#replay').addClass('active');
-            $.get("/rest/replay/" + requestId).done(function (content) {
-                $('#content').text(content);
-            });
-        });
-
-        $('#delete').click(function () {
-            removeAllClasses();
-            $('#delete').addClass('active');
-            $.get("/rest/delete/" + requestId).done(function (content) {
-                location.reload();
-            });
-        });
     });
+    $('#responsePane').click(function () {
+                            removeAllClasses();
+                            $('#responsePane').addClass('active');
+                            $.get("/rest/response/" + requestId).done(function (content) {
+                                $('#content').text(content);
+                            });
+                        });
+                        $('#requestPane').click(function () {
+                            removeAllClasses();
+                            $('#requestPane').addClass('active');
+                            $.get("/rest/request/" + requestId).done(function (content) {
+                                $('#content').text(content);
+                            });
+                        });
+
+                        $('#replay').click(function () {
+                            removeAllClasses();
+                            $('#replay').addClass('active');
+                            $.get("/rest/replay/" + requestId).done(function (content) {
+                                $('#content').text(content);
+                            });
+                        });
+
+                        $('#delete').click(function () {
+                            removeAllClasses();
+                            $('#delete').addClass('active');
+                            $.get("/rest/delete/" + requestId).done(function (content) {
+                                location.reload();
+                            });
+                        });
+
+
 
 });
 
