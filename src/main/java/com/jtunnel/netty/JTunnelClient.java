@@ -1,6 +1,9 @@
 package com.jtunnel.netty;
 
 import com.google.common.base.Stopwatch;
+import com.jtunnel.client.TunnelClientMessageHandler;
+import com.jtunnel.codec.ProtoMessageDecoder;
+import com.jtunnel.codec.ProtoMessageEncoder;
 import com.jtunnel.data.DataStore;
 import com.jtunnel.data.SearchableDataStore;
 import com.jtunnel.data.SearchableMapDbDataStore;
@@ -11,11 +14,15 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.codec.LengthFieldPrepender;
+import io.netty.handler.timeout.IdleStateHandler;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -33,6 +40,7 @@ public class JTunnelClient {
 
   private final SearchableDataStore dataStore;
   private final TunnelConfig tunnelConfig;
+  private final EventLoopGroup clientHttpGroup = new NioEventLoopGroup();
 
 
   public JTunnelClient(TunnelConfig tunnelConfig, SearchableDataStore dataStore) {
@@ -48,9 +56,6 @@ public class JTunnelClient {
       try {
         log.info("Starting JTunnel Client");
         EventLoopGroup group = new NioEventLoopGroup();
-        ClientHandler handler =
-            new ClientHandler(tunnelConfig.getDestHost(), tunnelConfig.getServerHost(), dataStore,
-                tunnelConfig.getDestPort());
         try {
           Bootstrap b = new Bootstrap();
           b.option(ChannelOption.SO_KEEPALIVE, true).group(group).channel(NioSocketChannel.class)
@@ -58,7 +63,14 @@ public class JTunnelClient {
               .handler(new ChannelInitializer<SocketChannel>() {
                 @Override
                 protected void initChannel(SocketChannel socketChannel) throws Exception {
-                  socketChannel.pipeline().addLast(handler);
+                  ChannelPipeline pipeline = socketChannel.pipeline();
+                  pipeline.addLast(new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
+                  pipeline.addLast(new LengthFieldPrepender(4));
+                  pipeline.addLast(new IdleStateHandler(1, 2, 0));
+                  pipeline.addLast(new ProtoMessageEncoder());
+                  pipeline.addLast(new ProtoMessageDecoder());
+                  pipeline.addLast(new TunnelClientMessageHandler(clientHttpGroup,tunnelConfig.getDestHost(), dataStore,
+                      tunnelConfig.getDestPort(), tunnelConfig.getServerHost()));
                 }
               });
           ChannelFuture f = b.connect().sync();
@@ -76,6 +88,9 @@ public class JTunnelClient {
     try {
       Stopwatch stopwatch = Stopwatch.createStarted();
       HashMap<HttpRequest, HttpResponse> map = dataStore.allRequests();
+      /*for (HttpRequest request : map.keySet()) {
+        dataStore.indexJsonContent(request.getContent());
+      }*/
       map.forEach(dataStore::index);
       log.info("Time Taken to Index all requests=" + stopwatch.elapsed(TimeUnit.SECONDS));
       stopwatch.stop();

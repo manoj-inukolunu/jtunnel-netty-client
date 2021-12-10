@@ -47,7 +47,7 @@ public class HttpServer {
       Properties properties = new Properties();
       properties.put("mode", "share");
       properties.put("tunnel.server-host", UUID.randomUUID().toString());
-      properties.put("tunnel.server-port", 1234);
+      properties.put("tunnel.server-port", 8585);
       properties.put("file", args[1]);
       properties.put("tunnel.dest-host", "localhost");
       properties.put("tunnel.dest-port", "5050");
@@ -65,7 +65,7 @@ public class HttpServer {
       properties.put("tunnel.dest-host", args[1]);
       properties.put("tunnel.dest-port", args[2]);
       properties.put("tunnel.server-host", args[3]);
-      properties.put("tunnel.server-port", 1234);
+      properties.put("tunnel.server-port", 8585);
       properties.put("data-store-location", args[4]);
       properties.put("server.port", args[5]);
       application.setDefaultProperties(properties);
@@ -89,42 +89,7 @@ public class HttpServer {
     if (Objects.requireNonNull(mode).equalsIgnoreCase("tunnel")) {
       return new SearchableMapDbDataStore(environment.getProperty("data-store-location"));
     } else {
-      return new SearchableDataStore() {
-        @Override
-        public Set<String> search(List<String> text) {
-          return null;
-        }
-
-        @Override
-        public void index(HttpRequest request, HttpResponse response) {
-
-        }
-
-        @Override
-        public void add(String requestId, FullHttpRequest request) throws Exception {
-
-        }
-
-        @Override
-        public void saveFullTrace(String requestId, FullHttpResponse response) throws Exception {
-
-        }
-
-        @Override
-        public HashMap<HttpRequest, HttpResponse> allRequests() throws Exception {
-          return null;
-        }
-
-        @Override
-        public HttpRequest get(String requestId) throws Exception {
-          return null;
-        }
-
-        @Override
-        public HttpResponse getResponse(String requestId) throws Exception {
-          return null;
-        }
-      };
+      return null;
     }
   }
 }

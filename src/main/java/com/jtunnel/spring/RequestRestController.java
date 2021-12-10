@@ -1,10 +1,15 @@
 package com.jtunnel.spring;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.jayway.jsonpath.JsonPath;
 import com.jtunnel.data.SearchableDataStore;
 import com.jtunnel.netty.DestHttpResponseHandler;
 import com.jtunnel.netty.TunnelConfig;
@@ -32,10 +37,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.java.Log;
+import net.minidev.json.JSONArray;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -54,6 +61,27 @@ public class RequestRestController {
   @Autowired
   TunnelConfig tunnelConfig;
 
+  LoadingCache<String, List<HttpRequest>> jsonPathCache = CacheBuilder.newBuilder().maximumSize(100).build(
+      new CacheLoader<String, List<HttpRequest>>() {
+        @Override
+        public List<HttpRequest> load(String jsonPath) throws Exception {
+          HashMap<HttpRequest, HttpResponse> map = dataStore.allRequests();
+          List<HttpRequest> list = new ArrayList<>();
+          for (HttpRequest request : map.keySet()) {
+            try {
+              if (request.getContent() != null) {
+                JSONArray array = JsonPath.read(request.getContent(), jsonPath);
+                if (array != null && array.size() != 0) {
+                  list.add(request);
+                }
+              }
+            } catch (Exception e) {
+            }
+          }
+          return list;
+        }
+      });
+
   @GetMapping("/rest/test")
   public String test() {
     return "test";
@@ -62,13 +90,14 @@ public class RequestRestController {
   private List<HttpRequest> search(String term) throws Exception {
     Stopwatch stopwatch = Stopwatch.createStarted();
     Set<String> requestIds = dataStore.search(Arrays.asList(term));
-    List<HttpRequest> list = new ArrayList<>();
+    Set<HttpRequest> set = new HashSet<>();
     for (String requestId : requestIds) {
-      list.add(dataStore.get(requestId));
+      set.add(dataStore.get(requestId));
     }
+    set.addAll(jsonPathCache.get(term));
     log.info("Time Taken to search=" + stopwatch.elapsed(TimeUnit.SECONDS));
     stopwatch.stop();
-    return list;
+    return new ArrayList<>(set);
   }
 
 
@@ -84,6 +113,12 @@ public class RequestRestController {
       List<HttpRequest> list = new ArrayList<>(data.keySet());
       return getResponseFromList(start, end, list);
     }
+  }
+
+  @GetMapping("/rest/data/search_terms")
+  public List<String> searchTerms(@RequestParam("start") int start, @RequestParam("length") int end,
+      @RequestParam("search[value]") String term) throws Exception {
+    return new ArrayList<>(dataStore.getSearchTerms());
   }
 
   @NotNull
@@ -119,12 +154,28 @@ public class RequestRestController {
 
   @GetMapping("/rest/request/{requestId}")
   public String getRequest(@PathVariable("requestId") String requestId) throws Exception {
-    return dataStore.get(requestId).toString();
+    HttpRequest request = dataStore.get(requestId);
+    try {
+      request.setContent(
+          mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mapper.readValue(request.getContent(),
+              JsonNode.class)));
+    } catch (Exception ignored) {
+
+    }
+    return request.toString();
   }
 
   @GetMapping("/rest/response/{requestId}")
   public String getResponse(@PathVariable("requestId") String requestId) throws Exception {
-    return dataStore.getResponse(requestId).toString();
+    HttpResponse response = dataStore.getResponse(requestId);
+    try {
+      response.setContent(
+          mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mapper.readValue(response.getContent(),
+              JsonNode.class)));
+    } catch (Exception ignored) {
+
+    }
+    return response.toString();
   }
 
   @GetMapping("/rest/replay/{requestId}")

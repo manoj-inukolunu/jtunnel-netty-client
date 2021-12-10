@@ -11,7 +11,10 @@ public interface SearchIndex {
   Set<String> search(List<String> text);
 
   void index(HttpRequest request, HttpResponse response);
+
+  void indexJsonContent(String content);
 }
+
 
 
 
