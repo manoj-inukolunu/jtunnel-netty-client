@@ -8,10 +8,13 @@ import com.jtunnel.spring.HttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import java.util.HashMap;
+import java.util.NavigableSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentNavigableMap;
 import lombok.extern.java.Log;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
+import org.mapdb.HTreeMap;
 import org.mapdb.Serializer;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +26,7 @@ public class MapDbDataStore implements DataStore {
   private final DB mapDb;
   private final ConcurrentNavigableMap<String, String> requests;
   private final ConcurrentNavigableMap<String, String> responses;
+  private final NavigableSet<String> searchTerms;
   private static final ObjectMapper mapper = new ObjectMapper();
 
   static {
@@ -35,6 +39,7 @@ public class MapDbDataStore implements DataStore {
     mapDb = DBMaker.fileDB(directory + "/jtunnel.db").closeOnJvmShutdown().make();
     requests = mapDb.treeMap("requests", Serializer.STRING, Serializer.STRING).createOrOpen();
     responses = mapDb.treeMap("responses", Serializer.STRING, Serializer.STRING).createOrOpen();
+    searchTerms = mapDb.treeSet("searchTerms", Serializer.STRING).createOrOpen();
   }
 
   @Override
@@ -70,6 +75,14 @@ public class MapDbDataStore implements DataStore {
       return mapper.readValue(responses.get(requestId), HttpResponse.class);
     }
     return new HttpResponse();
+  }
+
+  public void addSearchTerm(String term) {
+    searchTerms.add(term);
+  }
+
+  public Set<String> getSearchTerms() {
+    return searchTerms;
   }
 
   @Override

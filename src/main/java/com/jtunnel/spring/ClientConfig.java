@@ -8,9 +8,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ClientConfig {
 
-
-
-
   @Bean
   public ObjectMapper mapper() {
     return new ObjectMapper();
