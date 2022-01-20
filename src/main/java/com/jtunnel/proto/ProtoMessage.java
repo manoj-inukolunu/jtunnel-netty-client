@@ -1,12 +1,13 @@
 package com.jtunnel.proto;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.Data;
 
 @Data
-public class ProtoMessage {
+public class ProtoMessage implements Serializable {
 
 
   private String sessionId;

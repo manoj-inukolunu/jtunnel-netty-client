@@ -2,12 +2,7 @@ package com.jtunnel.netty;
 
 import com.google.common.base.Stopwatch;
 import com.jtunnel.client.TunnelClientMessageHandler;
-import com.jtunnel.codec.ProtoMessageDecoder;
-import com.jtunnel.codec.ProtoMessageEncoder;
-import com.jtunnel.data.DataStore;
 import com.jtunnel.data.SearchableDataStore;
-import com.jtunnel.data.SearchableMapDbDataStore;
-import com.jtunnel.data.index.SearchIndex;
 import com.jtunnel.spring.HttpRequest;
 import com.jtunnel.spring.HttpResponse;
 import io.netty.bootstrap.Bootstrap;
@@ -20,17 +15,15 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-import io.netty.handler.codec.LengthFieldPrepender;
+import io.netty.handler.codec.serialization.ClassResolvers;
+import io.netty.handler.codec.serialization.ObjectDecoder;
+import io.netty.handler.codec.serialization.ObjectEncoder;
 import io.netty.handler.timeout.IdleStateHandler;
 import java.net.InetSocketAddress;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import lombok.extern.java.Log;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Log
@@ -64,13 +57,12 @@ public class JTunnelClient {
                 @Override
                 protected void initChannel(SocketChannel socketChannel) throws Exception {
                   ChannelPipeline pipeline = socketChannel.pipeline();
-                  pipeline.addLast(new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
-                  pipeline.addLast(new LengthFieldPrepender(4));
-                  pipeline.addLast(new IdleStateHandler(1, 2, 0));
-                  pipeline.addLast(new ProtoMessageEncoder());
-                  pipeline.addLast(new ProtoMessageDecoder());
-                  pipeline.addLast(new TunnelClientMessageHandler(clientHttpGroup,tunnelConfig.getDestHost(), dataStore,
-                      tunnelConfig.getDestPort(), tunnelConfig.getServerHost()));
+//                  pipeline.addLast(new IdleStateHandler(1, 2, 0));
+                  pipeline.addLast(new ObjectEncoder());
+                  pipeline.addLast(new ObjectDecoder(Integer.MAX_VALUE, ClassResolvers.cacheDisabled(null)));
+                  pipeline.addLast(
+                      new TunnelClientMessageHandler(clientHttpGroup, tunnelConfig.getDestHost(), dataStore,
+                          tunnelConfig.getDestPort(), tunnelConfig.getServerHost()));
                 }
               });
           ChannelFuture f = b.connect().sync();

@@ -17,8 +17,9 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import java.net.InetSocketAddress;
-import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class EmbeddedHttpRequestInboundHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
   private ChannelHandlerContext tunnelClientContext;
@@ -43,6 +44,7 @@ public class EmbeddedHttpRequestInboundHandler extends SimpleChannelInboundHandl
   @Override
   protected void channelRead0(ChannelHandlerContext embeddedChannelContext, FullHttpRequest msg) throws Exception {
     FullHttpRequest request = msg.retainedDuplicate();
+    log.info("Received http request");
     try {
       localHttpRequest(msg, request);
       embeddedChannelContext.close();

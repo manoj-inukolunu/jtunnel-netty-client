@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONArray;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +52,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@Log
+@Slf4j
 public class RequestRestController {
 
   @Autowired
@@ -104,6 +105,7 @@ public class RequestRestController {
   @GetMapping("/rest/data/history")
   public Response search(@RequestParam("start") int start, @RequestParam("length") int end,
       @RequestParam("search[value]") String term) throws Exception {
+    Stopwatch stopwatch = Stopwatch.createStarted();
     if (!Strings.isNullOrEmpty(term)) {
       end += start;
       return getResponseFromList(start, end, search(term));
@@ -111,7 +113,9 @@ public class RequestRestController {
       end += start;
       HashMap<HttpRequest, HttpResponse> data = dataStore.allRequests();
       List<HttpRequest> list = new ArrayList<>(data.keySet());
-      return getResponseFromList(start, end, list);
+      Response response = getResponseFromList(start, end, list);
+      log.info("Took = {} milliseconds", stopwatch.elapsed(TimeUnit.MILLISECONDS));
+      return response;
     }
   }
 
@@ -123,6 +127,7 @@ public class RequestRestController {
 
   @NotNull
   private Response getResponseFromList(int start, int end, List<HttpRequest> list) {
+    Stopwatch stopwatch = Stopwatch.createStarted();
     list.sort((o1, o2) -> -Long.compare(Long.parseLong(o1.requestId), Long.parseLong(o2.requestId)));
 
     List<ObjectNode> objectNodes = new ArrayList<>();
@@ -140,6 +145,7 @@ public class RequestRestController {
     response.setTotal(list.size());
     response.setCountPerPage(end - start);
     response.setList(objectNodes.subList(start, end >= objectNodes.size() ? objectNodes.size() - 1 : end));
+    System.out.println("TOOK " + stopwatch.elapsed(TimeUnit.MILLISECONDS) + " MilliSeconds");
     return response;
   }
 
