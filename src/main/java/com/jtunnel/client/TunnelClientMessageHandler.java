@@ -1,6 +1,8 @@
 package com.jtunnel.client;
 
 
+import static io.netty.channel.ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE;
+
 import com.google.common.primitives.Bytes;
 import com.jtunnel.data.DataStore;
 import com.jtunnel.proto.MessageType;
@@ -11,6 +13,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
@@ -34,7 +37,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class TunnelClientMessageHandler extends SimpleChannelInboundHandler<ProtoMessage> {
+public class TunnelClientMessageHandler extends ChannelInboundHandlerAdapter {
 
   private final DataStore dataStore;
   private final int localPort;
@@ -61,17 +64,20 @@ public class TunnelClientMessageHandler extends SimpleChannelInboundHandler<Prot
     registerMessage.addAttachment("subdomain", subDomain);
     registerMessage.setMessageType(MessageType.REGISTER);
     registerMessage.setSessionId(UUID.randomUUID().toString());
-    tunnelClientContext.writeAndFlush(registerMessage);
+    ChannelFuture future = tunnelClientContext.writeAndFlush(registerMessage);
+    future.addListener(FIRE_EXCEPTION_ON_FAILURE);
   }
 
   @Override
-  protected void channelRead0(ChannelHandlerContext tunnelClientContext, ProtoMessage msg) throws Exception {
+  public void channelRead(ChannelHandlerContext tunnelClientContext, Object obj) throws Exception {
+    ProtoMessage msg = (ProtoMessage) obj;
     if (msg.getMessageType().equals(MessageType.FIN)) {
       //initiate local http request
       HttpRequestDecoder decoder = new HttpRequestDecoder();
       EmbeddedChannel embeddedChannel =
           new EmbeddedChannel(decoder, new HttpObjectAggregator(Integer.MAX_VALUE),
-              new EmbeddedHttpRequestInboundHandler(clientHttpEventLoopGroup,tunnelClientContext, msg.getSessionId(), dataStore, destHost,
+              new EmbeddedHttpRequestInboundHandler(clientHttpEventLoopGroup, tunnelClientContext, msg.getSessionId(),
+                  dataStore, destHost,
                   localPort));
       embeddedChannel.writeInbound(Unpooled.copiedBuffer(getBytes(map.get(msg.getSessionId()))));
       embeddedChannel.close();

@@ -3,6 +3,7 @@ package com.jtunnel.data;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Stopwatch;
 import com.jtunnel.spring.HttpRequest;
 import com.jtunnel.spring.HttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -11,14 +12,16 @@ import java.util.HashMap;
 import java.util.NavigableSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentNavigableMap;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.HTreeMap;
 import org.mapdb.Serializer;
 import org.springframework.stereotype.Component;
 
-@Log
+@Slf4j
 @Component
 public class MapDbDataStore implements DataStore {
 
@@ -57,10 +60,12 @@ public class MapDbDataStore implements DataStore {
 
   @Override
   public HashMap<HttpRequest, HttpResponse> allRequests() throws Exception {
+    Stopwatch stopwatch = Stopwatch.createStarted();
     HashMap<HttpRequest, HttpResponse> map = new HashMap<>();
     for (String requestId : requests.keySet()) {
       map.put(get(requestId), getResponse(requestId));
     }
+    log.info("Took {} milliseconds to get all requests from mapdp", stopwatch.elapsed(TimeUnit.MILLISECONDS));
     return map;
   }
 
@@ -91,4 +96,17 @@ public class MapDbDataStore implements DataStore {
     responses.remove(requestId);
     mapDb.commit();
   }
+
+  /*public static void main(String[] args) throws Exception {
+    MapDbDataStore dataStore = new MapDbDataStore("/Users/manoj");
+    HashMap<HttpRequest, HttpResponse> all = dataStore.allRequests();
+    DB mapDb = DBMaker.fileDB("/Users/manoj/test/" + "/jtunnel.db").closeOnJvmShutdown().make();
+    ConcurrentNavigableMap<String, String> requests =
+        mapDb.treeMap("requests", Serializer.STRING, Serializer.STRING).createOrOpen();
+    ConcurrentNavigableMap<String, String> responses =
+        mapDb.treeMap("responses", Serializer.STRING, Serializer.STRING).createOrOpen();
+    *//*for (HttpRequest request : all.keySet()) {
+      requests.put()
+    }*//*
+  }*/
 }
