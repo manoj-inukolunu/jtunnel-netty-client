@@ -13,6 +13,8 @@ public class ProtoMessage implements Serializable {
   private String sessionId;
   private String body;
   private MessageType messageType;
+  private String subDomain;
+  private String uri;
   private Map<String, String> attachments = new HashMap<>();
 
 

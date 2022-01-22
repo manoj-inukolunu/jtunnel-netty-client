@@ -25,7 +25,7 @@ import org.springframework.core.env.Environment;
 @Log
 @SpringBootApplication
 @EnableConfigurationProperties
-@ComponentScan(basePackages = {"com.jtunnel.netty", "com.jtunnel.spring", "com.jtunnel.file"})
+@ComponentScan(basePackages = {"com.jtunnel.netty", "com.jtunnel.client", "com.jtunnel.spring", "com.jtunnel.file"})
 @EnableAutoConfiguration
 public class HttpServer {
 

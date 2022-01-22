@@ -44,7 +44,7 @@ public class EmbeddedHttpRequestInboundHandler extends SimpleChannelInboundHandl
   @Override
   protected void channelRead0(ChannelHandlerContext embeddedChannelContext, FullHttpRequest msg) throws Exception {
     FullHttpRequest request = msg.retainedDuplicate();
-    log.info("Received http request");
+    log.info("Received http request for uri={}", request.uri());
     try {
       localHttpRequest(msg, request);
       embeddedChannelContext.close();
@@ -74,7 +74,7 @@ public class EmbeddedHttpRequestInboundHandler extends SimpleChannelInboundHandl
       if (!future.isSuccess()) {
         future.cause().printStackTrace();
       } else {
-        System.out.println("Finished Writing Full Http Request to " + channel.id().toString());
+        log.debug("Finished Writing Full Http Request to " + channel.id().toString());
       }
     });
   }

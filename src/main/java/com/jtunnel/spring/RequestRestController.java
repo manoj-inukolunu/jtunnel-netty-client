@@ -145,7 +145,7 @@ public class RequestRestController {
     response.setTotal(list.size());
     response.setCountPerPage(end - start);
     response.setList(objectNodes.subList(start, end >= objectNodes.size() ? objectNodes.size() - 1 : end));
-    System.out.println("TOOK " + stopwatch.elapsed(TimeUnit.MILLISECONDS) + " MilliSeconds");
+    log.info("TOOK " + stopwatch.elapsed(TimeUnit.MILLISECONDS) + " MilliSeconds");
     return response;
   }
 

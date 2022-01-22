@@ -16,9 +16,10 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 
 @Sharable
-@Log
+@Slf4j
 public class LocalHttpResponseHandler extends SimpleChannelInboundHandler<FullHttpResponse> {
 
   private final String sessionId;
@@ -40,7 +41,7 @@ public class LocalHttpResponseHandler extends SimpleChannelInboundHandler<FullHt
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
       if (msg instanceof ProtoMessage) {
-        System.out.println("Received Fin Message on channelId " + localHandlerContext.channel().id().toString());
+        log.debug("Received Fin Message on channelId " + localHandlerContext.channel().id().toString());
         pipeline.writeAndFlush(msg);
       } else {
         ByteBuf byteBuf = (ByteBuf) msg;
@@ -51,7 +52,7 @@ public class LocalHttpResponseHandler extends SimpleChannelInboundHandler<FullHt
         message.setSessionId(sessionId);
         message.setMessageType(MessageType.HTTP_RESPONSE);
         message.setBody(new String(data));
-        pipeline.writeAndFlush(message).addListener(future -> System.out.println("Sent Proto Message"));
+        pipeline.writeAndFlush(message).addListener(future -> log.debug("Sent Proto Message"));
       }
       ctx.writeAndFlush(msg);
     }
@@ -76,14 +77,14 @@ public class LocalHttpResponseHandler extends SimpleChannelInboundHandler<FullHt
 
   @Override
   public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-    System.out.println("Channel Inactive");
+    log.debug("Channel Inactive");
     super.channelInactive(ctx);
     ctx.close();
   }
 
   @Override
   public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-    System.out.println("Channel ChannelUn Registered");
+    log.debug("Channel ChannelUn Registered");
     super.channelUnregistered(ctx);
     ctx.close();
   }
