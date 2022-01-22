@@ -18,6 +18,9 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
@@ -54,13 +57,17 @@ public class JTunnelClient {
         log.info("Starting JTunnel Client");
         EventLoopGroup group = new NioEventLoopGroup();
         try {
+          final SslContext sslCtx = SslContextBuilder.forClient()
+              .trustManager(InsecureTrustManagerFactory.INSTANCE).build();
           Bootstrap b = new Bootstrap();
+          String host = "localhost";//tunnelConfig.getServerHost();
           b.option(ChannelOption.SO_KEEPALIVE, true).group(group).channel(NioSocketChannel.class)
-              .remoteAddress(new InetSocketAddress(tunnelConfig.getServerHost(), tunnelConfig.getServerPort()))
+              .remoteAddress(new InetSocketAddress(host, tunnelConfig.getServerPort()))
               .handler(new ChannelInitializer<SocketChannel>() {
                 @Override
                 protected void initChannel(SocketChannel socketChannel) throws Exception {
                   ChannelPipeline pipeline = socketChannel.pipeline();
+                  pipeline.addLast(sslCtx.newHandler(socketChannel.alloc(), host, tunnelConfig.getServerPort()));
 //                  pipeline.addLast(new IdleStateHandler(1, 2, 0));
                   pipeline.addLast(new ObjectEncoder());
                   pipeline.addLast(new ObjectDecoder(Integer.MAX_VALUE, ClassResolvers.cacheDisabled(null)));
