@@ -18,33 +18,37 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
-import io.netty.handler.timeout.IdleStateHandler;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import lombok.extern.java.Log;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.support.GenericWebApplicationContext;
 
 @Log
 @Component
 public class JTunnelClient {
 
 
+  private final GenericWebApplicationContext context;
   private final SearchableDataStore dataStore;
   private final TunnelConfig tunnelConfig;
   private final EventLoopGroup clientHttpGroup = new NioEventLoopGroup();
 
 
-  public JTunnelClient(TunnelConfig tunnelConfig, SearchableDataStore dataStore) {
+  public JTunnelClient(TunnelConfig tunnelConfig, SearchableDataStore dataStore, GenericWebApplicationContext context) {
     this.tunnelConfig = tunnelConfig;
     this.dataStore = dataStore;
+    this.context = context;
   }
 
 
   @PostConstruct
   public void startClientTunnel() throws Exception {
     buildIndex(dataStore);
+
     new Thread(() -> {
       try {
         log.info("Starting JTunnel Client");
@@ -61,8 +65,7 @@ public class JTunnelClient {
                   pipeline.addLast(new ObjectEncoder());
                   pipeline.addLast(new ObjectDecoder(Integer.MAX_VALUE, ClassResolvers.cacheDisabled(null)));
                   pipeline.addLast(
-                      new TunnelClientMessageHandler(clientHttpGroup, tunnelConfig.getDestHost(), dataStore,
-                          tunnelConfig.getDestPort(), tunnelConfig.getServerHost()));
+                      new TunnelClientMessageHandler(clientHttpGroup, tunnelConfig.getDestHost(), dataStore, context));
                 }
               });
           ChannelFuture f = b.connect().sync();

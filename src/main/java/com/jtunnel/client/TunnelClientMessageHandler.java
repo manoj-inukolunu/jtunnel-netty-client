@@ -1,92 +1,86 @@
 package com.jtunnel.client;
 
 
-import static io.netty.channel.ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE;
-
 import com.google.common.primitives.Bytes;
 import com.jtunnel.data.DataStore;
 import com.jtunnel.proto.MessageType;
 import com.jtunnel.proto.ProtoMessage;
-import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.embedded.EmbeddedChannel;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
-import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.context.support.GenericWebApplicationContext;
 
-public class TunnelClientMessageHandler extends ChannelInboundHandlerAdapter {
+
+@Slf4j
+public final class TunnelClientMessageHandler extends ChannelInboundHandlerAdapter {
 
   private final DataStore dataStore;
-  private final int localPort;
   private final String destHost;
-  private final String subDomain;
   private final EventLoopGroup clientHttpEventLoopGroup;
+  private final GenericWebApplicationContext applicationContext;
+  private ChannelHandlerContext channelHandlerContext;
+  private final Map<String, Map<String, List<ProtoMessage>>> domainMap = new ConcurrentHashMap<>();
+  public final Map<String, Integer> subDomainToPortMap = new ConcurrentHashMap<>();
 
 
-  public TunnelClientMessageHandler(EventLoopGroup clientHttpGroup, String destHost,
-      DataStore dataStore, int localPort, String subDomain) {
+  public TunnelClientMessageHandler(EventLoopGroup clientHttpGroup, String destHost, DataStore dataStore,
+      GenericWebApplicationContext context) {
     this.dataStore = dataStore;
-    this.localPort = localPort;
     this.destHost = destHost;
-    this.subDomain = subDomain;
     this.clientHttpEventLoopGroup = clientHttpGroup;
+    applicationContext = context;
   }
 
-  private final Map<String, List<ProtoMessage>> map = new ConcurrentHashMap<>();
 
   @Override
-  public void channelActive(ChannelHandlerContext tunnelClientContext) throws Exception {
-    ProtoMessage registerMessage = new ProtoMessage();
-    registerMessage.setAttachments(new HashMap<>());
-    registerMessage.addAttachment("subdomain", subDomain);
-    registerMessage.setMessageType(MessageType.REGISTER);
-    registerMessage.setSessionId(UUID.randomUUID().toString());
-    ChannelFuture future = tunnelClientContext.writeAndFlush(registerMessage);
-    future.addListener(FIRE_EXCEPTION_ON_FAILURE);
+  public void channelActive(ChannelHandlerContext tunnelClientContext) {
+    this.channelHandlerContext = tunnelClientContext;
+    applicationContext.registerBean(TunnelClientMessageHandler.class, () -> this);
   }
 
   @Override
-  public void channelRead(ChannelHandlerContext tunnelClientContext, Object obj) throws Exception {
+  public void channelRead(ChannelHandlerContext tunnelClientContext, Object obj) {
     ProtoMessage msg = (ProtoMessage) obj;
+    log.debug("Received Message {}", msg);
     if (msg.getMessageType().equals(MessageType.FIN)) {
       //initiate local http request
+      log.info("Initiating Http Request for  subdomain={} and uri={} ", msg.getSubDomain(), msg.getUri());
       HttpRequestDecoder decoder = new HttpRequestDecoder();
-      EmbeddedChannel embeddedChannel =
-          new EmbeddedChannel(decoder, new HttpObjectAggregator(Integer.MAX_VALUE),
-              new EmbeddedHttpRequestInboundHandler(clientHttpEventLoopGroup, tunnelClientContext, msg.getSessionId(),
-                  dataStore, destHost,
-                  localPort));
-      embeddedChannel.writeInbound(Unpooled.copiedBuffer(getBytes(map.get(msg.getSessionId()))));
+      EmbeddedChannel embeddedChannel = new EmbeddedChannel(decoder, new HttpObjectAggregator(Integer.MAX_VALUE),
+          new EmbeddedHttpRequestInboundHandler(clientHttpEventLoopGroup, tunnelClientContext, msg.getSessionId(),
+              dataStore, destHost, subDomainToPortMap.get(msg.getSubDomain())));
+      String subDomain = msg.getSubDomain();
+      Map<String, List<ProtoMessage>> messagesMap = domainMap.get(subDomain);
+      if (messagesMap.containsKey(msg.getSessionId())) {
+        log.info("Writing to embedded channel with sessionId={} and  uri={} ", msg.getSessionId(), msg.getUri());
+        embeddedChannel.writeInbound(Unpooled.copiedBuffer(getBytes(messagesMap.get(msg.getSessionId()))));
+      } else {
+        log.info("Message Map={}", domainMap);
+        log.warn("Not writing for sessionId={} and  uri={}", msg.getSessionId(), msg.getUri());
+      }
       embeddedChannel.close();
+      domainMap.get(subDomain).remove(msg.getSessionId());
     } else {
-      List<ProtoMessage> messages = map.getOrDefault(msg.getSessionId(), new ArrayList<>());
-      messages.add(msg);
-      map.put(msg.getSessionId(), messages);
+      log.info("Saving message with sessionId={} and uri={}", msg.getSessionId(), msg.getUri());
+      Map<String, List<ProtoMessage>> messagesMap =
+          domainMap.getOrDefault(msg.getSubDomain(), new ConcurrentHashMap<>());
+      List<ProtoMessage> messagesList = messagesMap.getOrDefault(msg.getSessionId(), new ArrayList<>());
+      messagesList.add(msg);
+      messagesMap.put(msg.getSessionId(), messagesList);
+      domainMap.put(msg.getSubDomain(), messagesMap);
     }
-    System.out.println("Received Message " + msg.getSessionId());
+    log.debug("Received Message " + msg.getSessionId());
     ProtoMessage message = new ProtoMessage();
     message.setSessionId(msg.getSessionId());
     message.setMessageType(MessageType.ACK);
@@ -95,11 +89,16 @@ public class TunnelClientMessageHandler extends ChannelInboundHandlerAdapter {
 
 
   private ByteBuf getBytes(List<ProtoMessage> protoMessages) {
-    byte[] data = protoMessages.get(0).getBody().getBytes(StandardCharsets.UTF_8);
-    for (int i = 1; i < protoMessages.size(); i++) {
-      data = Bytes.concat(data, protoMessages.get(i).getBody().getBytes());
+    try {
+      byte[] data = protoMessages.get(0).getBody().getBytes(StandardCharsets.UTF_8);
+      for (int i = 1; i < protoMessages.size(); i++) {
+        data = Bytes.concat(data, protoMessages.get(i).getBody().getBytes());
+      }
+      return Unpooled.copiedBuffer(data);
+    } catch (RuntimeException e) {
+      log.error("Data = {}", protoMessages);
     }
-    return Unpooled.copiedBuffer(data);
+    return Unpooled.copiedBuffer(new byte[] {});
   }
 
   @Override
@@ -111,7 +110,15 @@ public class TunnelClientMessageHandler extends ChannelInboundHandlerAdapter {
   @Override
   public void channelInactive(ChannelHandlerContext tunnelClientContext) throws Exception {
     super.channelInactive(tunnelClientContext);
-    System.out.println("Channel Inactive");
+    log.info("Channel Inactive");
+  }
+
+  public ChannelHandlerContext getChannelHandlerContext() {
+    return channelHandlerContext;
+  }
+
+  public void updateSubDomainPortMapping(String subDomain, Integer port) {
+    subDomainToPortMap.put(subDomain, port);
   }
 }
 
