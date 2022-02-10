@@ -1,0 +1,135 @@
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+  <!--<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+  <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.datatables.net/select/1.3.3/js/dataTables.select.min.js"></script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/select/1.3.3/css/select.dataTables.min.css">-->
+  <script src="/statsj.js"></script>
+</head>
+<body>
+<div class="relative min-h-screen flex ">
+
+  <div id="side-bar" class="px-8 py-7 text-blue-100 bg-blue-800 w-60 space-y-6">
+
+    <a href="#" class="text-white flex items-center space-x-2">
+      <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd"
+              d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z"
+              clip-rule="evenodd"/>
+      </svg>
+      <span class="text-2xl font-extrabold">JTunnel</span>
+    </a>
+
+    <button
+        class="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-8  border border-gray-400 rounded shadow w-40">
+      New Tunnel
+    </button>
+
+    <nav id="tunnels-list">
+
+      <a href="#" th:each="tunnel:${tunnels}" class="block py-2.5 px-4 rounded transition duration-200
+                         hover:bg-blue-700 hover:text-white">
+        <span th:text="${tunnel.name}"></span>
+      </a>
+    </nav>
+
+  </div>
+
+  <div class="p-10 text-2xl font-bold flex-1">
+    <!-- This example requires Tailwind CSS v2.0+ -->
+    <div class="flex flex-col">
+      <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+        <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+          <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Request Id
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Method
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Initial Line
+                </th>
+              </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+              <tr th:each="request:${requests}">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="ml-4">
+                      <div class="text-sm font-medium text-gray-900">
+                        <span th:text="${request.requestId}"></span>
+                      </div>
+                      <div class="text-sm text-gray-500">
+                        <span th:text="${request.requestTime}"></span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"
+                      th:text="${request.method}">
+                </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900"><span th:text="${request.initialLine}"></span></div>
+                  <!--                  <div class="text-sm text-gray-500">Host: manojteams.jtunnel.net</div>-->
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-between py-10">
+      <span th:text="${'Found ' +total+ ' requests'}" class="text-sm font-thin"></span>
+      <nav aria-label="Page navigation">
+        <ul class="inline-flex">
+          <li>
+            <button
+                class="text-xl px-5 text-blue-600 transition-colors duration-150 bg-white rounded-l-lg focus:shadow-outline hover:bg-blue-100">
+              Prev
+            </button>
+          </li>
+          <li>
+            <button class="text-xl px-5 text-white transition-colors duration-150 bg-blue-600 focus:shadow-outline">1
+            </button>
+          </li>
+          <li>
+            <button
+                class="text-xl px-5 text-blue-600 transition-colors duration-150 bg-white focus:shadow-outline hover:bg-blue-100">
+              2
+            </button>
+          </li>
+          <li>
+            <button
+                class="text-xl px-5 text-blue-600 transition-colors duration-150 bg-white focus:shadow-outline hover:bg-blue-100">
+              3
+            </button>
+          </li>
+          <li>
+            <button
+                class="text-xl px-5 text-blue-600 transition-colors duration-150 bg-white rounded-r-lg focus:shadow-outline hover:bg-blue-100">
+              Next
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>
+
+

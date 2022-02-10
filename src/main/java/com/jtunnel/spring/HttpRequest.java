@@ -8,9 +8,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
+import lombok.Builder;
 import lombok.Data;
+import lombok.extern.jackson.Jacksonized;
 
 @Data
+@Builder
+@Jacksonized
 public class HttpRequest {
 
 
@@ -76,23 +80,34 @@ public class HttpRequest {
   }
 
   private static void appendHeaders(StringBuilder builder, List<Entry<String, String>> headers) {
-    for (Entry<String, String> header : headers) {
-      builder.append(header.getKey());
-      builder.append(": ");
-      builder.append(header.getValue());
-      builder.append(StringUtil.NEWLINE);
+    process(builder, headers);
+  }
+
+  static void process(StringBuilder builder, List<Entry<String, String>> headers) {
+    if (headers != null) {
+      for (Entry<String, String> header : headers) {
+        builder.append(header.getKey());
+        builder.append(": ");
+        builder.append(header.getValue());
+        builder.append(StringUtil.NEWLINE);
+      }
     }
   }
 
   @Override
   public String toString() {
-    StringBuilder builder = new StringBuilder();
-    builder.append(initialLine).append("\r\n");
-    appendHeaders(builder, httpHeaders);
-    appendHeaders(builder, trailers);
-    builder.append(StringUtil.NEWLINE);
-    builder.append(content);
-    return builder.toString();
+    try {
+      StringBuilder builder = new StringBuilder();
+      builder.append(initialLine).append("\r\n");
+      appendHeaders(builder, httpHeaders);
+      appendHeaders(builder, trailers);
+      builder.append(StringUtil.NEWLINE);
+      builder.append(content);
+      return builder.toString();
+    } catch (Exception e) {
+      e.printStackTrace();
+      return "";
+    }
   }
 
   @Override
@@ -115,3 +130,4 @@ public class HttpRequest {
     return Objects.hash(httpHeaders, trailers, content, version, uri, method);
   }
 }
+

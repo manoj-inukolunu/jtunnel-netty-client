@@ -5,6 +5,7 @@ import com.jtunnel.spring.HttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import java.util.HashMap;
+import java.util.Map;
 import lombok.extern.java.Log;
 
 @Log
@@ -33,8 +34,13 @@ public class InMemoryDataStore implements DataStore {
   }
 
   @Override
-  public HashMap<HttpRequest, HttpResponse> allRequests() {
+  public HashMap<HttpRequest, HttpResponse> allRequestsFull() {
     return map;
+  }
+
+  @Override
+  public Map<String, String> allRequests() throws Exception {
+    return null;
   }
 
   @Override

@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import lombok.extern.java.Log;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 
@@ -50,7 +49,7 @@ public class JTunnelClient {
 
   @PostConstruct
   public void startClientTunnel() throws Exception {
-    buildIndex(dataStore);
+//    buildIndex(dataStore);
 
     new Thread(() -> {
       try {
@@ -60,7 +59,7 @@ public class JTunnelClient {
           final SslContext sslCtx = SslContextBuilder.forClient()
               .trustManager(InsecureTrustManagerFactory.INSTANCE).build();
           Bootstrap b = new Bootstrap();
-          String host = "localhost";//tunnelConfig.getServerHost();
+          String host = tunnelConfig.getServerHost();
           b.option(ChannelOption.SO_KEEPALIVE, true).group(group).channel(NioSocketChannel.class)
               .remoteAddress(new InetSocketAddress(host, tunnelConfig.getServerPort()))
               .handler(new ChannelInitializer<SocketChannel>() {
@@ -78,6 +77,7 @@ public class JTunnelClient {
           ChannelFuture f = b.connect().sync();
           f.channel().closeFuture().sync();
         } finally {
+          log.info("Shutting Down Tunnel");
           group.shutdownGracefully().sync();
         }
       } catch (Exception e) {
@@ -86,20 +86,20 @@ public class JTunnelClient {
     }).start();
   }
 
-  public static void buildIndex(SearchableDataStore dataStore) {
+  /*public static void buildIndex(SearchableDataStore dataStore) {
     try {
       Stopwatch stopwatch = Stopwatch.createStarted();
       HashMap<HttpRequest, HttpResponse> map = dataStore.allRequests();
-      /*for (HttpRequest request : map.keySet()) {
+      *//*for (HttpRequest request : map.keySet()) {
         dataStore.indexJsonContent(request.getContent());
-      }*/
+      }*//*
       map.forEach(dataStore::index);
       log.info("Time Taken to Index all requests=" + stopwatch.elapsed(TimeUnit.SECONDS));
       stopwatch.stop();
     } catch (Exception e) {
       e.printStackTrace();
     }
-  }
+  }*/
 
 //  public static void main(String[] args) {
 //    SearchableDataStore dataStore = new SearchableMapDbDataStore("/Users/manoj");

@@ -7,12 +7,14 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 
 public interface DataStore {
 
   default HttpRequest buildHttpRequest(FullHttpRequest httpRequest, String requestId) {
-    HttpRequest request = new HttpRequest();
+    HttpRequest request = HttpRequest.builder().build();
     request.setHttpHeaders(httpRequest.headers().entries());
     request.setTrailers(httpRequest.trailingHeaders().entries());
     request.setContent(httpRequest.content().toString(Charset.defaultCharset()));
@@ -22,7 +24,7 @@ public interface DataStore {
   }
 
   default HttpResponse buildHttpResponse(FullHttpResponse httpResponse, String requestId) {
-    HttpResponse response = new HttpResponse();
+    HttpResponse response = HttpResponse.builder().build();
     response.setHttpHeaders(httpResponse.headers().entries());
     response.setTrailers(httpResponse.trailingHeaders().entries());
     response.setContent(httpResponse.content().toString(Charset.defaultCharset()));
@@ -35,7 +37,9 @@ public interface DataStore {
 
   void saveFullTrace(String requestId, FullHttpResponse response) throws Exception;
 
-  HashMap<HttpRequest, HttpResponse> allRequests() throws Exception;
+  HashMap<HttpRequest, HttpResponse> allRequestsFull() throws Exception;
+
+  Map<String, String> allRequests() throws Exception;
 
   HttpRequest get(String requestId) throws Exception;
 
