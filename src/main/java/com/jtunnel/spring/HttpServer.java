@@ -21,13 +21,16 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Log
 @SpringBootApplication
 @EnableConfigurationProperties
 @ComponentScan(basePackages = {"com.jtunnel.netty", "com.jtunnel.client", "com.jtunnel.spring", "com.jtunnel.file"})
-@EnableAutoConfiguration
+@EnableScheduling
 public class HttpServer {
+
+
 
   public static void main(String args[]) throws Exception {
     log.info("Starting Http Server");

@@ -18,12 +18,14 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import lombok.extern.java.Log;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 
@@ -47,20 +49,24 @@ public class JTunnelClient {
 
   @PostConstruct
   public void startClientTunnel() throws Exception {
-    buildIndex(dataStore);
+//    buildIndex(dataStore);
 
     new Thread(() -> {
       try {
         log.info("Starting JTunnel Client");
         EventLoopGroup group = new NioEventLoopGroup();
         try {
+          final SslContext sslCtx = SslContextBuilder.forClient()
+              .trustManager(InsecureTrustManagerFactory.INSTANCE).build();
           Bootstrap b = new Bootstrap();
+          String host = tunnelConfig.getServerHost();
           b.option(ChannelOption.SO_KEEPALIVE, true).group(group).channel(NioSocketChannel.class)
-              .remoteAddress(new InetSocketAddress(tunnelConfig.getServerHost(), tunnelConfig.getServerPort()))
+              .remoteAddress(new InetSocketAddress(host, tunnelConfig.getServerPort()))
               .handler(new ChannelInitializer<SocketChannel>() {
                 @Override
                 protected void initChannel(SocketChannel socketChannel) throws Exception {
                   ChannelPipeline pipeline = socketChannel.pipeline();
+                  pipeline.addLast(sslCtx.newHandler(socketChannel.alloc(), host, tunnelConfig.getServerPort()));
 //                  pipeline.addLast(new IdleStateHandler(1, 2, 0));
                   pipeline.addLast(new ObjectEncoder());
                   pipeline.addLast(new ObjectDecoder(Integer.MAX_VALUE, ClassResolvers.cacheDisabled(null)));
@@ -71,6 +77,7 @@ public class JTunnelClient {
           ChannelFuture f = b.connect().sync();
           f.channel().closeFuture().sync();
         } finally {
+          log.info("Shutting Down Tunnel");
           group.shutdownGracefully().sync();
         }
       } catch (Exception e) {
@@ -79,20 +86,20 @@ public class JTunnelClient {
     }).start();
   }
 
-  public static void buildIndex(SearchableDataStore dataStore) {
+  /*public static void buildIndex(SearchableDataStore dataStore) {
     try {
       Stopwatch stopwatch = Stopwatch.createStarted();
       HashMap<HttpRequest, HttpResponse> map = dataStore.allRequests();
-      /*for (HttpRequest request : map.keySet()) {
+      *//*for (HttpRequest request : map.keySet()) {
         dataStore.indexJsonContent(request.getContent());
-      }*/
+      }*//*
       map.forEach(dataStore::index);
       log.info("Time Taken to Index all requests=" + stopwatch.elapsed(TimeUnit.SECONDS));
       stopwatch.stop();
     } catch (Exception e) {
       e.printStackTrace();
     }
-  }
+  }*/
 
 //  public static void main(String[] args) {
 //    SearchableDataStore dataStore = new SearchableMapDbDataStore("/Users/manoj");

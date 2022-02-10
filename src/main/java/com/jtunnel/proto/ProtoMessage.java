@@ -14,7 +14,6 @@ public class ProtoMessage implements Serializable {
   private String body;
   private MessageType messageType;
   private String subDomain;
-  private String uri;
   private Map<String, String> attachments = new HashMap<>();
 
 
@@ -45,6 +44,12 @@ public class ProtoMessage implements Serializable {
     message.setMessageType(MessageType.HTTP_RESPONSE);
     message.setSessionId(sessionId);
     message.setBody("");
+    return message;
+  }
+
+  public static ProtoMessage ping() {
+    ProtoMessage message = new ProtoMessage();
+    message.setMessageType(MessageType.PING);
     return message;
   }
 }

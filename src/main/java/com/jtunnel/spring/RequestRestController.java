@@ -39,8 +39,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONArray;
@@ -62,13 +64,13 @@ public class RequestRestController {
   @Autowired
   TunnelConfig tunnelConfig;
 
-  LoadingCache<String, List<HttpRequest>> jsonPathCache = CacheBuilder.newBuilder().maximumSize(100).build(
-      new CacheLoader<String, List<HttpRequest>>() {
+  LoadingCache<String, List<HttpRequest>> jsonPathCache =
+      CacheBuilder.newBuilder().maximumSize(100).build(new CacheLoader<String, List<HttpRequest>>() {
         @Override
         public List<HttpRequest> load(String jsonPath) throws Exception {
-          HashMap<HttpRequest, HttpResponse> map = dataStore.allRequests();
+//          HashMap<HttpRequest, HttpResponse> map = dataStore.allRequests();
           List<HttpRequest> list = new ArrayList<>();
-          for (HttpRequest request : map.keySet()) {
+          /*for (HttpRequest request : map.keySet()) {
             try {
               if (request.getContent() != null) {
                 JSONArray array = JsonPath.read(request.getContent(), jsonPath);
@@ -78,7 +80,7 @@ public class RequestRestController {
               }
             } catch (Exception e) {
             }
-          }
+          }*/
           return list;
         }
       });
@@ -105,18 +107,19 @@ public class RequestRestController {
   @GetMapping("/rest/data/history")
   public Response search(@RequestParam("start") int start, @RequestParam("length") int end,
       @RequestParam("search[value]") String term) throws Exception {
-    Stopwatch stopwatch = Stopwatch.createStarted();
+    /*Stopwatch stopwatch = Stopwatch.createStarted();
     if (!Strings.isNullOrEmpty(term)) {
       end += start;
       return getResponseFromList(start, end, search(term));
     } else {
       end += start;
-      HashMap<HttpRequest, HttpResponse> data = dataStore.allRequests();
+      Map<String,String> data = dataStore.allRequests();
       List<HttpRequest> list = new ArrayList<>(data.keySet());
       Response response = getResponseFromList(start, end, list);
       log.info("Took = {} milliseconds", stopwatch.elapsed(TimeUnit.MILLISECONDS));
       return response;
-    }
+    }*/
+    throw new UnsupportedOperationException();
   }
 
   @GetMapping("/rest/data/search_terms")
@@ -152,9 +155,11 @@ public class RequestRestController {
 
   @GetMapping("/rest/history")
   public Response getHistory(@RequestParam("start") int start, @RequestParam("end") int end) throws Exception {
-    HashMap<HttpRequest, HttpResponse> data = dataStore.allRequests();
-    List<HttpRequest> list = new ArrayList<>(data.keySet());
-    list.sort((o1, o2) -> -Long.compare(Long.parseLong(o1.requestId), Long.parseLong(o2.requestId)));
+    Map<String, String> data = dataStore.allRequests();
+    List<HttpRequest> list =
+        data.keySet().stream().map(str -> HttpRequest.builder().requestId(str).initialLine(data.get(str)).build())
+            .sorted((o1, o2) -> -Long.compare(Long.parseLong(o1.requestId), Long.parseLong(o2.requestId)))
+            .collect(Collectors.toList());
     return getResponseFromList(start, end, list);
   }
 
@@ -162,9 +167,8 @@ public class RequestRestController {
   public String getRequest(@PathVariable("requestId") String requestId) throws Exception {
     HttpRequest request = dataStore.get(requestId);
     try {
-      request.setContent(
-          mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mapper.readValue(request.getContent(),
-              JsonNode.class)));
+      request.setContent(mapper.writerWithDefaultPrettyPrinter()
+          .writeValueAsString(mapper.readValue(request.getContent(), JsonNode.class)));
     } catch (Exception ignored) {
 
     }
@@ -175,9 +179,8 @@ public class RequestRestController {
   public String getResponse(@PathVariable("requestId") String requestId) throws Exception {
     HttpResponse response = dataStore.getResponse(requestId);
     try {
-      response.setContent(
-          mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mapper.readValue(response.getContent(),
-              JsonNode.class)));
+      response.setContent(mapper.writerWithDefaultPrettyPrinter()
+          .writeValueAsString(mapper.readValue(response.getContent(), JsonNode.class)));
     } catch (Exception ignored) {
 
     }
@@ -189,10 +192,9 @@ public class RequestRestController {
     log.info("Replaying request= " + requestId);
     HttpRequest request = dataStore.get(requestId);
     FullHttpRequest fullRequest =
-        new DefaultFullHttpRequest(HttpVersion.valueOf(request.getVersion()),
-            HttpMethod.valueOf(request.getMethod()), request.getUri(),
-            Unpooled.copiedBuffer(request.getContent().getBytes(StandardCharsets.UTF_8)), request.getHeaders(),
-            request.getTrailer());
+        new DefaultFullHttpRequest(HttpVersion.valueOf(request.getVersion()), HttpMethod.valueOf(request.getMethod()),
+            request.getUri(), Unpooled.copiedBuffer(request.getContent().getBytes(StandardCharsets.UTF_8)),
+            request.getHeaders(), request.getTrailer());
     localHttpRequest(fullRequest);
   }
 
@@ -207,9 +209,9 @@ public class RequestRestController {
     dataStore.add(requestId, fullHttpRequest);
     EventLoopGroup group = new NioEventLoopGroup();
     Bootstrap b = new Bootstrap();
-    b.group(group).channel(NioSocketChannel.class).remoteAddress(new InetSocketAddress(tunnelConfig.getDestHost(),
-        tunnelConfig.getDestPort())).handler(
-        new ChannelInitializer<SocketChannel>() {
+    b.group(group).channel(NioSocketChannel.class)
+        .remoteAddress(new InetSocketAddress(tunnelConfig.getDestHost(), 3030))
+        .handler(new ChannelInitializer<SocketChannel>() {
           @Override
           protected void initChannel(SocketChannel socketChannel) throws Exception {
             ChannelPipeline p = socketChannel.pipeline();

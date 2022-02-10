@@ -55,7 +55,7 @@ public final class TunnelClientMessageHandler extends ChannelInboundHandlerAdapt
     log.debug("Received Message {}", msg);
     if (msg.getMessageType().equals(MessageType.FIN)) {
       //initiate local http request
-      log.info("Initiating Http Request for  subdomain={} and uri={} ", msg.getSubDomain(), msg.getUri());
+      log.info("Initiating Http Request for  subdomain={}", msg.getSubDomain());
       HttpRequestDecoder decoder = new HttpRequestDecoder();
       EmbeddedChannel embeddedChannel = new EmbeddedChannel(decoder, new HttpObjectAggregator(Integer.MAX_VALUE),
           new EmbeddedHttpRequestInboundHandler(clientHttpEventLoopGroup, tunnelClientContext, msg.getSessionId(),
@@ -63,16 +63,16 @@ public final class TunnelClientMessageHandler extends ChannelInboundHandlerAdapt
       String subDomain = msg.getSubDomain();
       Map<String, List<ProtoMessage>> messagesMap = domainMap.get(subDomain);
       if (messagesMap.containsKey(msg.getSessionId())) {
-        log.info("Writing to embedded channel with sessionId={} and  uri={} ", msg.getSessionId(), msg.getUri());
+        log.info("Writing to embedded channel with sessionId={}", msg.getSessionId());
         embeddedChannel.writeInbound(Unpooled.copiedBuffer(getBytes(messagesMap.get(msg.getSessionId()))));
       } else {
         log.info("Message Map={}", domainMap);
-        log.warn("Not writing for sessionId={} and  uri={}", msg.getSessionId(), msg.getUri());
+        log.warn("Not writing for sessionId={}", msg.getSessionId());
       }
       embeddedChannel.close();
       domainMap.get(subDomain).remove(msg.getSessionId());
     } else {
-      log.info("Saving message with sessionId={} and uri={}", msg.getSessionId(), msg.getUri());
+      log.info("Saving message with sessionId={}", msg.getSessionId());
       Map<String, List<ProtoMessage>> messagesMap =
           domainMap.getOrDefault(msg.getSubDomain(), new ConcurrentHashMap<>());
       List<ProtoMessage> messagesList = messagesMap.getOrDefault(msg.getSessionId(), new ArrayList<>());

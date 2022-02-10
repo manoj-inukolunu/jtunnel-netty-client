@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class EmbeddedHttpRequestInboundHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
-  private ChannelHandlerContext tunnelClientContext;
+  private final ChannelHandlerContext tunnelClientContext;
   private final String sessionId;
   private final DataStore dataStore;
   private final String destHost;
@@ -49,7 +49,7 @@ public class EmbeddedHttpRequestInboundHandler extends SimpleChannelInboundHandl
       localHttpRequest(msg, request);
       embeddedChannelContext.close();
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error("Exception while making local http request", e);
     }
   }
 

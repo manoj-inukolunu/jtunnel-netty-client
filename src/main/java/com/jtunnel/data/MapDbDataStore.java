@@ -9,6 +9,7 @@ import com.jtunnel.spring.HttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentNavigableMap;
@@ -29,6 +30,7 @@ public class MapDbDataStore implements DataStore {
   private final DB mapDb;
   private final ConcurrentNavigableMap<String, String> requests;
   private final ConcurrentNavigableMap<String, String> responses;
+  private final ConcurrentNavigableMap<String, String> requestIds;
   private final NavigableSet<String> searchTerms;
   private static final ObjectMapper mapper = new ObjectMapper();
 
@@ -42,6 +44,7 @@ public class MapDbDataStore implements DataStore {
     mapDb = DBMaker.fileDB(directory + "/jtunnel.db").closeOnJvmShutdown().make();
     requests = mapDb.treeMap("requests", Serializer.STRING, Serializer.STRING).createOrOpen();
     responses = mapDb.treeMap("responses", Serializer.STRING, Serializer.STRING).createOrOpen();
+    requestIds = mapDb.treeMap("requestIds", Serializer.STRING, Serializer.STRING).createOrOpen();
     searchTerms = mapDb.treeSet("searchTerms", Serializer.STRING).createOrOpen();
   }
 
@@ -49,6 +52,7 @@ public class MapDbDataStore implements DataStore {
   public void add(String requestId, FullHttpRequest request) throws Exception {
     HttpRequest httpRequest = buildHttpRequest(request, requestId);
     requests.put(requestId, mapper.writeValueAsString(httpRequest));
+    requestIds.put(requestId, httpRequest.getInitialLine());
     mapDb.commit();
   }
 
@@ -59,7 +63,12 @@ public class MapDbDataStore implements DataStore {
   }
 
   @Override
-  public HashMap<HttpRequest, HttpResponse> allRequests() throws Exception {
+  public Map<String, String> allRequests() throws Exception {
+    return requestIds;
+  }
+
+  @Override
+  public HashMap<HttpRequest, HttpResponse> allRequestsFull() throws Exception {
     Stopwatch stopwatch = Stopwatch.createStarted();
     HashMap<HttpRequest, HttpResponse> map = new HashMap<>();
     for (String requestId : requests.keySet()) {
@@ -79,7 +88,7 @@ public class MapDbDataStore implements DataStore {
     if (responses.containsKey(requestId)) {
       return mapper.readValue(responses.get(requestId), HttpResponse.class);
     }
-    return new HttpResponse();
+    return HttpResponse.builder().build();
   }
 
   public void addSearchTerm(String term) {
