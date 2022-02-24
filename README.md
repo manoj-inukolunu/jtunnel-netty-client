@@ -7,7 +7,7 @@ Create Tunnels and expose local servers to the internet , This is still a work i
 * Checkout source
 * `mvn clean install`
 * `cd target`
-* `java -jar tunnel target/jtunnel-netty-1.0-SNAPSHOT.jar <destServer host> <destServer Port> <subdomain-for-tunnel>  <DB Location> <stats-server-port>`
+* `java -jar target/jtunnel-netty-1.0-SNAPSHOT.jar tunnel <dest-server> <dest-server-port> <sudomain> <tunnel-db-location> <stats-port>`
 * Example invocation `java -jar target/jtunnel-netty-1.0-SNAPSHOT.jar tunnel localhost 3030 manoj /Users/manoj 5050`
 * You can see the requests at http://localhost:5050/stats
 
