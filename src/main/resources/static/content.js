@@ -1,22 +1,21 @@
 const emitter = mitt()
 const contentDiv = {
-  props: [], request: undefined, pageNum: 0, data() {
-    return {contentList: undefined, recordsTotal: undefined}
+  props: [], request: undefined, data() {
+    return {contentList: undefined, recordsTotal: undefined, pageNum: undefined}
   }, mounted() {
     fetch('/rest/history?start=0&end=10').then(res => res.json()).then(d => {
       console.log(d);
       this.contentList = d.data;
       this.recordsTotal = d.recordsTotal;
+      this.pageNum = 1;
     })
   }, components: {
     'actions-div': actionsDiv
   }, methods: {
     prev(event) {
-      if (this.pageNum === undefined) {
-        this.pageNum = 0;
-      }
-      if (this.pageNum > 0) {
-        let start = this.pageNum * 10;
+
+      if (this.pageNum > 1) {
+        let start = (this.pageNum - 1) * 10;
         end = start + 10;
         fetch('/rest/history?start=' + start + '&end=' + end).then(
             res => res.json()).then(d => {
@@ -28,10 +27,8 @@ const contentDiv = {
       }
     }, next(event) {
       if (this.pageNum !== Number(this.recordsTotal / 10)) {
-        if (this.pageNum === undefined) {
-          this.pageNum = 0;
-        }
-        let start = Number(this.pageNum * 10);
+
+        let start = Number((this.pageNum - 1) * 10);
         end = start + 10;
         fetch('/rest/history?start=' + start + '&end=' + end).then(
             res => res.json()).then(d => {
