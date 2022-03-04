@@ -10,9 +10,11 @@ import io.netty.channel.ChannelFutureListener;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicReference;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -25,9 +27,9 @@ public class TunnelClientManager {
   private TunnelClientMessageHandler tunnelClientMessageHandler;
   private final GenericWebApplicationContext applicationContext;
   private Map<String, Integer> registeredSubDomains = new ConcurrentHashMap<>();
-  private List<Tunnel> tunnels = new CopyOnWriteArrayList<>();
+  private Set<Tunnel> tunnels = new CopyOnWriteArraySet<>();
 
-  public List<Tunnel> getTunnels() {
+  public Set<Tunnel> getTunnels() {
     return tunnels;
   }
 

@@ -210,7 +210,7 @@ public class RequestRestController {
     EventLoopGroup group = new NioEventLoopGroup();
     Bootstrap b = new Bootstrap();
     b.group(group).channel(NioSocketChannel.class)
-        .remoteAddress(new InetSocketAddress(tunnelConfig.getDestHost(), 3030))
+        .remoteAddress(new InetSocketAddress(tunnelConfig.getDestHost(), 7070))
         .handler(new ChannelInitializer<SocketChannel>() {
           @Override
           protected void initChannel(SocketChannel socketChannel) throws Exception {
