@@ -1,30 +1,52 @@
 const emitter = mitt()
 const contentDiv = {
-  props: [],
-  request: undefined,
-  data() {
-    return {contentList: undefined}
+  props: [], request: undefined, data() {
+    return {contentList: undefined, recordsTotal: undefined, pageNum: undefined}
   }, mounted() {
     fetch('/rest/history?start=0&end=10').then(res => res.json()).then(d => {
       console.log(d);
       this.contentList = d.data;
+      this.recordsTotal = d.recordsTotal;
+      this.pageNum = 1;
     })
-  },
-  components: {
+  }, components: {
     'actions-div': actionsDiv
-  },
-  methods: {
-    loadData(event) {
+  }, methods: {
+    prev(event) {
+
+      if (this.pageNum > 1) {
+        let start = (this.pageNum - 1) * 10;
+        end = start + 10;
+        fetch('/rest/history?start=' + start + '&end=' + end).then(
+            res => res.json()).then(d => {
+          console.log(d);
+          this.contentList = d.data;
+          this.recordsTotal = d.recordsTotal;
+          this.pageNum = this.pageNum - 1;
+        })
+      }
+    }, next(event) {
+      if (this.pageNum !== Number(this.recordsTotal / 10)) {
+
+        let start = Number((this.pageNum - 1) * 10);
+        end = start + 10;
+        fetch('/rest/history?start=' + start + '&end=' + end).then(
+            res => res.json()).then(d => {
+          console.log(d);
+          this.contentList = d.data;
+          this.recordsTotal = d.recordsTotal;
+          this.pageNum++;
+        })
+      }
+    }, loadData(event) {
       let elem = event.target;
       while (elem.tagName !== 'TR') {
         elem = elem.parentElement
       }
       emitter.emit('getRequestData', {requestId: elem.id})
-    },
-    close(event) {
+    }, close(event) {
       $("#tunnel-modal").hide();
-    },
-    create(event) {
+    }, create(event) {
       $.ajax({
         type: "POST",
         url: "/tunnel/create",
@@ -38,7 +60,8 @@ const contentDiv = {
         complete: function (jqXHR) {
           $("tunnel-modal").hide();
           location.reload();
-        }, done: function () {
+        },
+        done: function () {
           $("tunnel-modal").hide();
           location.reload();
         }
@@ -180,15 +203,15 @@ const contentDiv = {
             <div
             class="px-5 py-5 bg-white border-t flex flex-col xs:flex-row items-center xs:justify-between">
                         <span class="text-xs xs:text-sm text-gray-900">
-                            Showing 1 to 10 of 50 Entries
+                            Showing Page {{pageNum}} of {{recordsTotal}} Entries
                         </span>
           <div class="inline-flex mt-2 xs:mt-0">
             <button
-                class="text-sm bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-l">
+                class="text-sm bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-l" @click="prev">
               Prev
             </button>
             <button
-                class="text-sm bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-r">
+                class="text-sm bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-r" @click="next">
               Next
             </button>
           </div>

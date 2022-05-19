@@ -6,6 +6,7 @@ import com.jtunnel.client.TunnelClientManager;
 import com.jtunnel.data.SearchableDataStore;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -49,7 +50,7 @@ public class TunnelController {
   }
 
   @GetMapping("/tunnel/all")
-  public List<Tunnel> allTunnels() {
+  public Set<Tunnel> allTunnels() {
     return tunnelClientManager.getTunnels();
   }
 }
